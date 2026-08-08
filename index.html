@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Car & Bike Racing Game</title>
+    <title>ATAVA 3D Indian Super Racing</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a1a;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f172a;
             user-select: none;
+            touch-action: manipulation;
         }
 
         #game-ui {
@@ -24,81 +25,155 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            z-index: 5;
+        }
+
+        .stats-box {
+            padding: 15px 20px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .stat-item span { color: #f59e0b; }
+
+        /* ATAVA Popup Animation */
+        .atava-popup {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fbbf24;
+            text-shadow: 0 0 20px #f59e0b, 2px 2px 4px #000;
+            opacity: 0;
+            transition: all 0.4s ease-out;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .atava-popup.show {
+            opacity: 1;
+            transform: translate(-50%, -80%) scale(1.2);
+        }
+
+        /* Motivational Banner */
+        .brand-motivation {
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.9), transparent);
+            color: white;
+            padding: 10px 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            display: none;
+            z-index: 15;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
         }
 
         /* Menu Overlay */
         .overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.92);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             pointer-events: auto;
-            z-index: 10;
+            z-index: 30;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         h1 {
-            color: #fff;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px #ff0055;
+            color: #f8fafc;
+            font-size: 2rem;
+            margin-bottom: 5px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-title {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
             text-align: center;
         }
 
-        p {
-            color: #ccc;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
+        .vehicle-select-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 5px;
         }
 
-        .btn-container {
-            display: flex;
-            gap: 20px;
+        .v-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 12px 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
         }
 
-        .btn {
-            background: linear-gradient(45deg, #ff0055, #ff5500);
+        .v-btn:hover, .v-btn.selected {
+            background: #2563eb;
+            border-color: #60a5fa;
+            color: white;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+        }
+
+        .v-btn span {
+            display: block;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            font-weight: normal;
+            margin-top: 3px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
             border: none;
             color: white;
-            padding: 15px 30px;
+            padding: 14px 40px;
             font-size: 1.2rem;
-            font-weight: bold;
+            font-weight: 800;
             border-radius: 30px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            width: 100%;
+            max-width: 400px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 0, 85, 0.6);
-        }
-
-        /* Score & Stats */
-        .stats-box {
-            padding: 20px;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            display: flex;
-            gap: 30px;
-        }
-
-        .stat-item span {
-            color: #ffcc00;
-        }
-
-        /* Mobile Controls */
+        /* Mobile Touch Controls */
         .mobile-controls {
-            display: none;
+            display: flex;
             justify-content: space-between;
-            padding: 20px;
+            padding: 20px 30px;
             pointer-events: auto;
         }
 
@@ -106,22 +181,26 @@
             width: 70px;
             height: 70px;
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             color: white;
             font-size: 1.8rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            touch-action: manipulation;
+            backdrop-filter: blur(4px);
         }
 
-        @media (max-width: 768px) {
-            .mobile-controls { display: flex; }
-            h1 { font-size: 1.8rem; }
+        .branding-footer {
+            margin-top: 15px;
+            font-size: 0.7rem;
+            color: #fbbf24;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-align: center;
         }
     </style>
-    <!-- Three.js 3D Library -->
+    <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
@@ -130,7 +209,12 @@
         <div class="stats-box">
             <div class="stat-item">SCORE: <span id="score">0</span></div>
             <div class="stat-item">COINS: <span id="coins">0</span></div>
-            <div class="stat-item">SPEED: <span id="speed">0</span> KM/H</div>
+            <div class="stat-item">KM/H: <span id="speed">0</span></div>
+        </div>
+
+        <div id="atava-pop" class="atava-popup">ATAVA +10</div>
+        <div id="motivate-banner" class="brand-motivation">
+            🔥 ATAVA DIGITAL SERVICES & TRADING - GREAT JOB! KEEP RACING! 🔥
         </div>
 
         <div class="mobile-controls">
@@ -139,38 +223,65 @@
         </div>
     </div>
 
-    <!-- Start / Game Over Screen -->
+    <!-- Start / GameOver Menu -->
     <div id="menu-overlay" class="overlay">
-        <h1 id="menu-title">3D SPEED RACER</h1>
-        <p id="menu-subtitle">Choose Your Vehicle To Start</p>
-        <div class="btn-container">
-            <button class="btn" onclick="startGame('car')">🏎️ CAR</button>
-            <button class="btn" onclick="startGame('bike')">🏍️ BIKE</button>
+        <h1 id="menu-title">ATAVA 3D RACER</h1>
+        <p class="sub-title" id="menu-sub">Select Your Favourite Ride</p>
+        
+        <div class="vehicle-select-grid" id="v-grid">
+            <div class="v-btn selected" onclick="selectVehicle('thar', this)">
+                🚙 Mahindra Thar
+                <span>4x4 Offroad SUV</span>
+            </div>
+            <div class="v-btn" onclick="selectVehicle('scorpio', this)">
+                🚘 Scorpio-N / Roxx
+                <span>Big SUV Style</span>
+            </div>
+            <div class="v-btn" onclick="selectVehicle('classic', this)">
+                🏍️ RE Classic 350
+                <span>Retro Cruiser Bike</span>
+            </div>
+            <div class="v-btn" onclick="selectVehicle('mt15', this)">
+                🏍️ Yamaha MT-15
+                <span>Hyper Naked Bike</span>
+            </div>
+            <div class="v-btn" onclick="selectVehicle('creta', this)">
+                🚗 Hyundai Creta
+                <span>Urban SUV</span>
+            </div>
+            <div class="v-btn" onclick="selectVehicle('ather', this)">
+                🛵 Ather / Ola EV
+                <span>Smart Electric Scooter</span>
+            </div>
         </div>
+
+        <button class="start-btn" onclick="startGame()">START RACE 🚀</button>
+        <div class="branding-footer">POWERED BY ATAVA DIGITAL SERVICES & TRADING</div>
     </div>
 
     <script>
-        // --- GAME VARIABLES ---
+        // --- GAME STATE ---
         let scene, camera, renderer;
-        let player, playerType = 'car';
-        let road, roadTiles = [];
+        let player, selectedModel = 'thar';
+        let roadTiles = [], sceneryObjects = [];
         let obstacles = [], coinList = [];
         let gameActive = false;
         let score = 0, coins = 0, speed = 0;
-        let targetX = 0;
-        
-        const ROAD_WIDTH = 12;
         const LANES = [-3.5, 0, 3.5];
         let currentLane = 1;
+        let lastMilestone = 0;
 
-        // Key states
-        const keys = { Left: false, Right: false };
+        function selectVehicle(type, element) {
+            selectedModel = type;
+            document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
+            element.classList.add('selected');
+        }
 
-        // --- INITIALIZE THREE.JS SCENE ---
+        // --- THREE.JS SETUP ---
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1a2e);
-            scene.fog = new THREE.FogExp2(0x1a1a2e, 0.015);
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.012);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             
@@ -179,124 +290,165 @@
             renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
             dirLight.position.set(20, 40, 20);
             dirLight.castShadow = true;
             scene.add(dirLight);
 
-            // Create Initial Road
-            createRoad();
-
-            // Event Listeners
-            window.addEventListener('resize', onWindowResize);
-            document.addEventListener('keydown', handleKeyDown);
+            createRoadEnvironment();
             
-            // Mobile Touch Events
-            setupMobileControls();
+            window.addEventListener('resize', onResize);
+            document.addEventListener('keydown', onKeyDown);
+            setupTouchControls();
         }
 
-        // --- ROAD CREATION ---
-        function createRoad() {
-            const roadGeo = new THREE.PlaneGeometry(ROAD_WIDTH, 100);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+        // --- HIGHWAY & SCENERY ---
+        function createRoadEnvironment() {
+            const roadGeo = new THREE.PlaneGeometry(12, 100);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+
+            const grassGeo = new THREE.PlaneGeometry(80, 100);
+            const grassMat = new THREE.MeshStandardMaterial({ color: 0x064e3b });
 
             for (let i = 0; i < 4; i++) {
-                const tile = new THREE.Mesh(roadGeo, roadMat);
-                tile.rotation.x = -Math.PI / 2;
-                tile.position.z = -i * 100;
-                tile.receiveShadow = true;
-                scene.add(tile);
-                roadTiles.push(tile);
+                const zPos = -i * 100;
 
-                // Add Lane Markings
-                createLaneMarkings(tile.position.z);
+                // Main Road
+                const roadTile = new THREE.Mesh(roadGeo, roadMat);
+                roadTile.rotation.x = -Math.PI / 2;
+                roadTile.position.z = zPos;
+                roadTile.receiveShadow = true;
+                scene.add(roadTile);
+                roadTiles.push(roadTile);
+
+                // Grass Sides
+                const grassLeft = new THREE.Mesh(grassGeo, grassMat);
+                grassLeft.rotation.x = -Math.PI / 2;
+                grassLeft.position.set(-46, -0.01, zPos);
+                scene.add(grassLeft);
+                roadTiles.push(grassLeft);
+
+                const grassRight = new THREE.Mesh(grassGeo, grassMat);
+                grassRight.rotation.x = -Math.PI / 2;
+                grassRight.position.set(46, -0.01, zPos);
+                scene.add(grassRight);
+                roadTiles.push(grassRight);
+
+                // Add Side Trees
+                spawnTrees(zPos);
             }
         }
 
-        function createLaneMarkings(zPos) {
-            const markGeo = new THREE.PlaneGeometry(0.3, 4);
-            const markMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        function spawnTrees(zPos) {
+            const treeGeo = new THREE.ConeGeometry(2, 6, 5);
+            const trunkGeo = new THREE.CylinderGeometry(0.4, 0.4, 2);
+            const leafMat = new THREE.MeshStandardMaterial({ color: 0x047857 });
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
 
-            for (let z = -45; z < 50; z += 15) {
-                [-1.8, 1.8].forEach(x => {
-                    const mark = new THREE.Mesh(markGeo, markMat);
-                    mark.rotation.x = -Math.PI / 2;
-                    mark.position.set(x, 0.01, zPos + z);
-                    scene.add(mark);
-                    roadTiles.push(mark); // Attach to road movement
+            for (let z = -40; z < 50; z += 20) {
+                [-10, 10].forEach(xOffset => {
+                    const treeGroup = new THREE.Group();
+                    const leaves = new THREE.Mesh(treeGeo, leafMat);
+                    leaves.position.y = 4;
+                    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                    trunk.position.y = 1;
+                    treeGroup.add(leaves, trunk);
+                    
+                    treeGroup.position.set(xOffset > 0 ? xOffset + Math.random()*5 : xOffset - Math.random()*5, 0, zPos + z);
+                    scene.add(treeGroup);
+                    sceneryObjects.push(treeGroup);
                 });
             }
         }
 
-        // --- PLAYER CREATION (CAR / BIKE) ---
-        function createPlayer(type) {
+        // --- CUSTOM VEHICLE BUILDER ---
+        function buildVehicle(type) {
             if (player) scene.remove(player);
-
             player = new THREE.Group();
 
-            if (type === 'car') {
-                // Body
-                const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.5);
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff0055, metalness: 0.5 });
+            let colorHex = 0xff0000;
+            if (type === 'thar') colorHex = 0xb91c1c; // Red/Black SUV
+            if (type === 'scorpio') colorHex = 0x0f172a; // Black Big SUV
+            if (type === 'classic') colorHex = 0x047857; // Forest Green Bike
+            if (type === 'mt15') colorHex = 0x2563eb; // Metallic Blue
+            if (type === 'creta') colorHex = 0xe2e8f0; // White
+            if (type === 'ather') colorHex = 0x10b981; // Green EV
+
+            const isBike = (type === 'classic' || type === 'mt15' || type === 'ather');
+
+            if (!isBike) {
+                // SUV / CAR BODY
+                const bodyGeo = new THREE.BoxGeometry(type === 'scorpio' ? 2.0 : 1.8, 1.0, type === 'scorpio' ? 3.8 : 3.2);
+                const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.4 });
                 const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.y = 0.5;
+                body.position.y = 0.7;
                 body.castShadow = true;
                 player.add(body);
 
-                // Cabin
-                const cabinGeo = new THREE.BoxGeometry(1.4, 0.6, 1.8);
-                const cabinMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+                // Roof Cabin
+                const cabinGeo = new THREE.BoxGeometry(1.6, 0.7, 1.8);
+                const cabinMat = new THREE.MeshStandardMaterial({ color: 0x020617 });
                 const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-                cabin.position.set(0, 1, -0.2);
+                cabin.position.set(0, 1.4, -0.2);
                 player.add(cabin);
 
-            } else { // BIKE
-                // Bike Frame
-                const frameGeo = new THREE.BoxGeometry(0.6, 0.8, 2.2);
-                const frameMat = new THREE.MeshStandardMaterial({ color: 0x00ccff, metalness: 0.8 });
+                // Wheels
+                const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+                [[-0.9, 0.4, 1], [0.9, 0.4, 1], [-0.9, 0.4, -1], [0.9, 0.4, -1]].forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.position.set(...pos);
+                    player.add(wheel);
+                });
+
+            } else {
+                // BIKE / SCOOTER
+                const frameGeo = new THREE.BoxGeometry(0.5, 0.7, 2.0);
+                const frameMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.7 });
                 const frame = new THREE.Mesh(frameGeo, frameMat);
                 frame.position.y = 0.6;
-                frame.castShadow = true;
                 player.add(frame);
 
-                // Handlebars
-                const handleGeo = new THREE.BoxGeometry(1.2, 0.1, 0.1);
-                const handleMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-                const handle = new THREE.Mesh(handleGeo, handleMat);
-                handle.position.set(0, 1, -0.5);
-                player.add(handle);
+                // Wheels
+                const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.15, 12);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+                [[0, 0.4, 0.8], [0, 0.4, -0.8]].forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.position.set(...pos);
+                    player.add(wheel);
+                });
             }
 
             player.position.set(LANES[currentLane], 0, 0);
             scene.add(player);
 
-            // Set Camera Relative to Player
             camera.position.set(0, 4, 7);
             camera.lookAt(player.position);
         }
 
         // --- OBSTACLES & COINS ---
-        function spawnObstacle() {
+        function spawnTraffic() {
             if (!gameActive) return;
 
             const lane = Math.floor(Math.random() * 3);
-            const obsGeo = new THREE.BoxGeometry(1.8, 1.2, 2);
-            const obsMat = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+            const obsGeo = new THREE.BoxGeometry(1.8, 1.0, 3.0);
+            const obsMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
             const obs = new THREE.Mesh(obsGeo, obsMat);
             obs.position.set(LANES[lane], 0.6, -120);
-            obs.castShadow = true;
             scene.add(obs);
             obstacles.push(obs);
 
-            // Spawn Coin near obstacle
-            if (Math.random() > 0.4) {
+            // Spawn ATAVA Coin
+            if (Math.random() > 0.3) {
                 const coinLane = (lane + 1) % 3;
-                const coinGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 16);
-                const coinMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+                const coinGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.1, 16);
+                const coinMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.8 });
                 const coin = new THREE.Mesh(coinGeo, coinMat);
                 coin.rotation.x = Math.PI / 2;
                 coin.position.set(LANES[coinLane], 0.8, -120);
@@ -305,18 +457,31 @@
             }
         }
 
-        // --- GAME CONTROLS ---
-        function handleKeyDown(e) {
-            if (!gameActive) return;
-
-            if ((e.key === 'ArrowLeft' || e.key === 'a') && currentLane > 0) {
-                currentLane--;
-            } else if ((e.key === 'ArrowRight' || e.key === 'd') && currentLane < 2) {
-                currentLane++;
-            }
+        // --- ATAVA ANIMATION & MOTIVATION ---
+        function triggerAtavaCoinAnimation() {
+            const pop = document.getElementById('atava-pop');
+            pop.classList.add('show');
+            setTimeout(() => {
+                pop.classList.remove('show');
+            }, 600);
         }
 
-        function setupMobileControls() {
+        function triggerMotivationBanner() {
+            const banner = document.getElementById('motivate-banner');
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 2500);
+        }
+
+        // --- CONTROLS ---
+        function onKeyDown(e) {
+            if (!gameActive) return;
+            if ((e.key === 'ArrowLeft' || e.key === 'a') && currentLane > 0) currentLane--;
+            if ((e.key === 'ArrowRight' || e.key === 'd') && currentLane < 2) currentLane++;
+        }
+
+        function setupTouchControls() {
             document.getElementById('btn-left').addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (gameActive && currentLane > 0) currentLane--;
@@ -327,90 +492,91 @@
             });
         }
 
-        // --- START / GAMEOVER LOGIC ---
-        function startGame(type) {
-            playerType = type;
+        // --- GAME LOOP ---
+        function startGame() {
             gameActive = true;
             score = 0;
             coins = 0;
-            speed = 0.8;
+            speed = 0.9;
             currentLane = 1;
+            lastMilestone = 0;
 
-            // Clear old items
             obstacles.forEach(o => scene.remove(o));
             coinList.forEach(c => scene.remove(c));
-            obstacles = [];
-            coinList = [];
+            obstacles = []; coinList = [];
 
-            createPlayer(playerType);
+            buildVehicle(selectedModel);
             document.getElementById('menu-overlay').style.display = 'none';
 
-            // Obstacle Spawner Loop
             setInterval(() => {
-                if(gameActive) spawnObstacle();
-            }, 1800);
+                if (gameActive) spawnTraffic();
+            }, 1600);
         }
 
         function gameOver() {
             gameActive = false;
-            document.getElementById('menu-title').innerText = "GAME OVER!";
-            document.getElementById('menu-subtitle').innerText = `Final Score: ${Math.floor(score)} | Coins: ${coins}`;
+            document.getElementById('menu-title').innerText = "CRASHED!";
+            document.getElementById('menu-sub').innerText = `Score: ${Math.floor(score)} | Coins: ${coins}`;
             document.getElementById('menu-overlay').style.display = 'flex';
         }
 
-        // --- GAME LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
             if (gameActive) {
-                // Update Score & Speed
                 score += 0.2;
-                speed = Math.min(speed + 0.0001, 1.8);
-                
+                speed = Math.min(speed + 0.0001, 2.0);
+
                 document.getElementById('score').innerText = Math.floor(score);
                 document.getElementById('coins').innerText = coins;
-                document.getElementById('speed').innerText = Math.floor(speed * 120);
+                document.getElementById('speed').innerText = Math.floor(speed * 110);
+
+                // Motivation Check (Every 100 points)
+                if (Math.floor(score) > 0 && Math.floor(score) % 100 === 0 && Math.floor(score) !== lastMilestone) {
+                    lastMilestone = Math.floor(score);
+                    triggerMotivationBanner();
+                }
 
                 // Smooth Lane Changing
-                targetX = LANES[currentLane];
-                player.position.x += (targetX - player.position.x) * 0.15;
+                player.position.x += (LANES[currentLane] - player.position.x) * 0.2;
 
-                // Move Road (Endless Effect)
+                // Move Highway & Scenery
                 roadTiles.forEach(tile => {
                     tile.position.z += speed;
-                    if (tile.position.z > 50) {
-                        tile.position.z -= 400;
-                    }
+                    if (tile.position.z > 50) tile.position.z -= 400;
                 });
 
-                // Move & Check Obstacles
+                sceneryObjects.forEach(obj => {
+                    obj.position.z += speed;
+                    if (obj.position.z > 50) obj.position.z -= 400;
+                });
+
+                // Move & Collision Check Obstacles
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     let obs = obstacles[i];
                     obs.position.z += speed;
 
-                    // Collision Detection
-                    if (Math.abs(obs.position.z - player.position.z) < 2 &&
+                    if (Math.abs(obs.position.z - player.position.z) < 2.0 &&
                         Math.abs(obs.position.x - player.position.x) < 1.2) {
                         gameOver();
                     }
 
-                    // Remove out of bounds
                     if (obs.position.z > 10) {
                         scene.remove(obs);
                         obstacles.splice(i, 1);
                     }
                 }
 
-                // Move & Collect Coins
+                // Move & Collect ATAVA Coins
                 for (let i = coinList.length - 1; i >= 0; i--) {
                     let coin = coinList[i];
                     coin.position.z += speed;
-                    coin.rotation.z += 0.05;
+                    coin.rotation.z += 0.08;
 
-                    // Coin Collect Detection
                     if (Math.abs(coin.position.z - player.position.z) < 1.5 &&
                         Math.abs(coin.position.x - player.position.x) < 1.2) {
                         coins += 1;
+                        triggerAtavaCoinAnimation();
                         scene.remove(coin);
                         coinList.splice(i, 1);
                     } else if (coin.position.z > 10) {
@@ -423,13 +589,12 @@
             renderer.render(scene, camera);
         }
 
-        function onWindowResize() {
+        function onResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Initialize Engine
         init();
         animate();
     </script>
