@@ -3,491 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ATAVA 3D HD Highway Racing</title>
+    <title>ATAVA Highway Racer</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: #000;
-            user-select: none;
-            touch-action: manipulation;
+            margin: 0; padding: 0; overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a; user-select: none;
         }
 
-        #game-ui {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            z-index: 5;
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            justify-content: space-between; z-index: 10;
         }
 
-        .stats-box {
-            padding: 15px 20px;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: space-around;
-            border-bottom: 2px solid #ff3300;
+        .hud-header {
+            background: rgba(0,0,0,0.6); padding: 12px 20px;
+            color: #fff; font-weight: bold; display: flex;
+            justify-content: space-around; border-bottom: 2px solid #ff3300;
         }
 
-        .stat-item span { color: #f59e0b; }
-
-        .atava-popup {
-            position: absolute;
-            top: 40%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #fbbf24;
-            text-shadow: 0 0 20px #f59e0b, 2px 2px 4px #000;
-            opacity: 0;
-            transition: all 0.4s ease-out;
-            pointer-events: none;
-            z-index: 20;
+        .menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b0f19; z-index: 20; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; pointer-events: auto;
         }
 
-        .atava-popup.show {
-            opacity: 1;
-            transform: translate(-50%, -80%) scale(1.2);
+        h1 { color: #ff3300; margin-bottom: 5px; text-align: center; }
+        .sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* Vehicle Card Selection */
+        .card-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+            width: 100%; max-width: 450px; margin-bottom: 20px;
         }
 
-        .brand-motivation {
-            position: absolute;
-            top: 15%; width: 100%;
-            text-align: center;
-            background: rgba(255, 51, 0, 0.85);
-            color: white;
-            padding: 10px 0;
-            font-size: 1.1rem;
-            font-weight: 800;
-            display: none;
-            z-index: 15;
-            box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+        .vehicle-card {
+            background: #1e293b; border: 2px solid #334155; border-radius: 12px;
+            padding: 10px; text-align: center; color: white; cursor: pointer;
+            transition: 0.3s;
         }
 
-        .overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-            z-index: 30;
-            padding: 20px;
-            box-sizing: border-box;
+        .vehicle-card.selected {
+            border-color: #ff3300; background: #2b1215;
+            box-shadow: 0 0 15px rgba(255, 51, 0, 0.4);
         }
 
-        h1 {
-            color: #f8fafc;
-            font-size: 2.2rem;
-            margin-bottom: 5px;
-            text-align: center;
-            letter-spacing: 1px;
-            background: linear-gradient(45deg, #ff3300, #ffaa00);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .vehicle-card img {
+            width: 100%; height: 70px; object-fit: contain; margin-bottom: 5px;
         }
 
-        .sub-title {
-            color: #94a3b8;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            text-align: center;
+        .card-title { font-weight: bold; font-size: 0.9rem; }
+        .card-type { font-size: 0.75rem; color: #ffaa00; }
+
+        .btn-start {
+            background: linear-gradient(45deg, #ff3300, #ff8800); border: none;
+            color: white; padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
+            border-radius: 30px; cursor: pointer; width: 100%; max-width: 450px;
         }
 
-        .vehicle-select-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 420px;
-            margin-bottom: 20px;
-            max-height: 50vh;
-            overflow-y: auto;
-            padding: 5px;
-        }
-
-        .v-btn {
-            background: #1e293b;
-            border: 2px solid #334155;
-            color: #e2e8f0;
-            padding: 12px 8px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.2s;
-        }
-
-        .v-btn:hover, .v-btn.selected {
-            background: #ff3300;
-            border-color: #ffaa00;
-            color: white;
-            box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-        }
-
-        .start-btn {
-            background: linear-gradient(45deg, #ff3300, #ffaa00);
-            border: none;
-            color: white;
-            padding: 14px 40px;
-            font-size: 1.2rem;
-            font-weight: 800;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 51, 0, 0.4);
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .mobile-controls {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px 30px;
+        .controls {
+            display: flex; justify-content: space-between; padding: 20px 40px;
             pointer-events: auto;
         }
 
         .ctrl-btn {
-            width: 75px; height: 75px;
-            background: rgba(255, 255, 255, 0.25);
-            border: 3px solid rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            color: white;
-            font-size: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-
-        .branding-footer {
-            margin-top: 15px;
-            font-size: 0.75rem;
-            color: #ffaa00;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-align: center;
+            width: 70px; height: 70px; background: rgba(255,255,255,0.2);
+            border: 2px solid #fff; border-radius: 50%; color: white;
+            font-size: 2rem; display: flex; align-items: center; justify-content: center;
         }
     </style>
-    <!-- Three.js + GLTFLoader for Real 3D Models -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
-    <div id="game-ui">
-        <div class="stats-box">
-            <div class="stat-item">SCORE: <span id="score">0</span></div>
-            <div class="stat-item">COINS: <span id="coins">0</span></div>
-            <div class="stat-item">KM/H: <span id="speed">0</span></div>
+    <div id="ui-overlay">
+        <div class="hud-header">
+            <div>SCORE: <span id="score">0</span></div>
+            <div>COINS: <span id="coins">0</span></div>
+            <div>KM/H: <span id="speed">100</span></div>
         </div>
 
-        <div id="atava-pop" class="atava-popup">ATAVA +10</div>
-        <div id="motivate-banner" class="brand-motivation">
-            🔥 ATAVA DIGITAL SERVICES & TRADING - SUPER SPEED! 🔥
-        </div>
-
-        <div class="mobile-controls">
-            <div class="ctrl-btn" id="btn-left">🠈</div>
-            <div class="ctrl-btn" id="btn-right">🠊</div>
+        <div class="controls">
+            <div class="ctrl-btn" onclick="moveLeft()">🠈</div>
+            <div class="ctrl-btn" onclick="moveRight()">🠊</div>
         </div>
     </div>
 
-    <div id="menu-overlay" class="overlay">
-        <h1 id="menu-title">HIGHWAY SPEED RACER</h1>
-        <p class="sub-title" id="menu-sub">Choose Your Super Ride</p>
-        
-        <div class="vehicle-select-grid">
-            <div class="v-btn selected" onclick="selectVehicle('thar', this)">🚙 Mahindra Thar 4x4</div>
-            <div class="v-btn" onclick="selectVehicle('scorpio', this)">🚘 Scorpio-N / Roxx</div>
-            <div class="v-btn" onclick="selectVehicle('classic', this)">🏍️ RE Classic 350</div>
-            <div class="v-btn" onclick="selectVehicle('mt15', this)">🏍️ Yamaha MT-15</div>
-            <div class="v-btn" onclick="selectVehicle('creta', this)">🚗 Hyundai Creta</div>
-            <div class="v-btn" onclick="selectVehicle('ather', this)">🛵 Ather EV Scooter</div>
+    <!-- Selection Cards -->
+    <div id="menu" class="menu-screen">
+        <h1>HIGHWAY SPEED RACER</h1>
+        <div class="sub">Choose Your Ride</div>
+
+        <div class="card-grid">
+            <div class="vehicle-card selected" onclick="selectCard('thar', this)">
+                <div class="card-title">Mahindra Thar</div>
+                <div class="card-type">4x4 SUV</div>
+            </div>
+            <div class="vehicle-card" onclick="selectCard('scorpio', this)">
+                <div class="card-title">Scorpio-N</div>
+                <div class="card-type">Big SUV</div>
+            </div>
+            <div class="vehicle-card" onclick="selectCard('classic', this)">
+                <div class="card-title">RE Classic 350</div>
+                <div class="card-type">Bullet Bike</div>
+            </div>
+            <div class="vehicle-card" onclick="selectCard('mt15', this)">
+                <div class="card-title">Yamaha MT-15</div>
+                <div class="card-type">Sports Bike</div>
+            </div>
         </div>
 
-        <button class="start-btn" onclick="startGame()">START RACE 🚀</button>
-        <div class="branding-footer">POWERED BY ATAVA DIGITAL SERVICES & TRADING</div>
+        <button class="btn-start" onclick="startGame()">START RACE 🚀</button>
     </div>
 
     <script>
-        let scene, camera, renderer, loader;
-        let player, selectedModel = 'thar';
-        let roadTiles = [];
-        let obstacles = [], coinList = [];
-        let gameActive = false;
-        let score = 0, coins = 0, speed = 0;
-        const LANES = [-4.5, -1.5, 1.5, 4.5];
+        let scene, camera, renderer, player;
+        let selectedVehicle = 'thar';
         let currentLane = 1;
+        const lanes = [-3, -1, 1, 3];
 
-        // Model CDN Source URLs (High Quality Free GLTF Models)
-        const MODEL_URLS = {
-            thar: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Buggy/glTF-Binary/Buggy.glb',
-            scorpio: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/ferrari.glb',
-            classic: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Duck/Duck.glb',
-            mt15: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Duck/Duck.glb'
-        };
-
-        function selectVehicle(type, element) {
-            selectedModel = type;
-            document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
-            element.classList.add('selected');
+        function selectCard(type, el) {
+            selectedVehicle = type;
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
         }
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb); // Sky blue
-            scene.fog = new THREE.FogExp2(0x87ceeb, 0.005);
+            scene.background = new THREE.Color(0x87ceeb);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            
+            camera.position.set(0, 3, 6);
+
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            loader = new THREE.GLTFLoader();
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(0, 10, 10);
+            scene.add(light);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(30, 50, 20);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
-
-            createRealHighwayTrack();
-            
-            window.addEventListener('resize', onResize);
-            document.addEventListener('keydown', onKeyDown);
-            setupTouchControls();
+            createRoad();
         }
 
-        // --- Real Highway with Asphalt Texture & Red-White Guard Rails ---
-        function createRealHighwayTrack() {
-            const roadGeo = new THREE.PlaneGeometry(16, 100);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
-
-            for (let i = 0; i < 4; i++) {
-                const zPos = -i * 100;
-
-                const roadTile = new THREE.Mesh(roadGeo, roadMat);
-                roadTile.rotation.x = -Math.PI / 2;
-                roadTile.position.z = zPos;
-                roadTile.receiveShadow = true;
-                scene.add(roadTile);
-                roadTiles.push(roadTile);
-
-                createCenterLines(zPos);
-                createRedWhiteBarriers(zPos);
-            }
+        function createRoad() {
+            const roadGeo = new THREE.PlaneGeometry(10, 200);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            scene.add(road);
         }
 
-        function createRedWhiteBarriers(zPos) {
-            const railGeo = new THREE.BoxGeometry(0.6, 1.2, 100);
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
-            ctx.fillStyle = '#d32f2f'; ctx.fillRect(0, 0, 64, 128);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(1, 25);
-
-            const railMat = new THREE.MeshStandardMaterial({ map: texture });
-
-            const leftRail = new THREE.Mesh(railGeo, railMat);
-            leftRail.position.set(-8.3, 0.6, zPos);
-            scene.add(leftRail);
-            roadTiles.push(leftRail);
-
-            const rightRail = new THREE.Mesh(railGeo, railMat);
-            rightRail.position.set(8.3, 0.6, zPos);
-            scene.add(rightRail);
-            roadTiles.push(rightRail);
-        }
-
-        function createCenterLines(zPos) {
-            const lineGeo = new THREE.PlaneGeometry(0.2, 100);
-            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-            const leftLine = new THREE.Mesh(lineGeo, lineMat);
-            leftLine.rotation.x = -Math.PI / 2;
-            leftLine.position.set(-0.2, 0.02, zPos);
-            scene.add(leftLine);
-            roadTiles.push(leftLine);
-
-            const rightLine = new THREE.Mesh(lineGeo, lineMat);
-            rightLine.rotation.x = -Math.PI / 2;
-            rightLine.position.set(0.2, 0.02, zPos);
-            scene.add(rightLine);
-            roadTiles.push(rightLine);
-        }
-
-        // --- Load Real 3D Model Vehicle ---
-        function loadPlayerVehicle(type) {
-            if (player) scene.remove(player);
-
+        function buildDetailedVehicle(type) {
+            if(player) scene.remove(player);
             player = new THREE.Group();
+
+            if(type === 'classic' || type === 'mt15') {
+                // Bike Structure (Sleek Shape)
+                const body = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.5, 0.8, 1.8),
+                    new THREE.MeshStandardMaterial({ color: type === 'mt15' ? 0x0066ff : 0x004411 })
+                );
+                body.position.y = 0.5;
+                player.add(body);
+            } else {
+                // Car/SUV Structure (Layered 3D)
+                const base = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.6, 0.8, 3.0),
+                    new THREE.MeshStandardMaterial({ color: type === 'thar' ? 0xcc0000 : 0x111111 })
+                );
+                base.position.y = 0.5;
+
+                const top = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.4, 0.7, 1.6),
+                    new THREE.MeshStandardMaterial({ color: 0x222222 })
+                );
+                top.position.set(0, 1.1, -0.2);
+
+                player.add(base);
+                player.add(top);
+            }
+
+            player.position.x = lanes[currentLane];
             scene.add(player);
-
-            // Fetching High Detailed Model
-            const url = MODEL_URLS[type] || MODEL_URLS.scorpio;
-
-            loader.load(url, (gltf) => {
-                const model = gltf.scene;
-                model.scale.set(0.8, 0.8, 0.8);
-                model.position.y = 0.2;
-                model.rotation.y = Math.PI; // Face forward
-                player.add(model);
-            }, undefined, (error) => {
-                // Fallback realistic shape if network fails
-                const fallbackGeo = new THREE.BoxGeometry(1.8, 1.0, 3.2);
-                const fallbackMat = new THREE.MeshStandardMaterial({ color: 0xcc0000 });
-                const mesh = new THREE.Mesh(fallbackGeo, fallbackMat);
-                mesh.position.y = 0.6;
-                player.add(mesh);
-            });
-
-            player.position.set(LANES[currentLane], 0, 0);
-
-            camera.position.set(0, 3.2, 6.0);
             camera.lookAt(player.position);
         }
 
-        function spawnTraffic() {
-            if (!gameActive) return;
-            const lane = Math.floor(Math.random() * 4);
-            const obs = new THREE.Mesh(
-                new THREE.BoxGeometry(1.8, 1.0, 3.2),
-                new THREE.MeshStandardMaterial({ color: 0x1565c0 })
-            );
-            obs.position.set(LANES[lane], 0.6, -120);
-            scene.add(obs);
-            obstacles.push(obs);
-
-            if (Math.random() > 0.4) {
-                const coin = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.6, 0.6, 0.1, 16),
-                    new THREE.MeshStandardMaterial({ color: 0xffb300, metalness: 0.8 })
-                );
-                coin.rotation.x = Math.PI / 2;
-                coin.position.set(LANES[(lane + 1) % 4], 0.8, -120);
-                scene.add(coin);
-                coinList.push(coin);
-            }
-        }
-
-        function triggerAtavaCoinAnimation() {
-            const pop = document.getElementById('atava-pop');
-            pop.classList.add('show');
-            setTimeout(() => pop.classList.remove('show'), 600);
-        }
-
-        function onKeyDown(e) {
-            if (!gameActive) return;
-            if ((e.key === 'ArrowLeft' || e.key === 'a') && currentLane > 0) currentLane--;
-            if ((e.key === 'ArrowRight' || e.key === 'd') && currentLane < 3) currentLane++;
-        }
-
-        function setupTouchControls() {
-            document.getElementById('btn-left').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameActive && currentLane > 0) currentLane--;
-            });
-            document.getElementById('btn-right').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (gameActive && currentLane < 3) currentLane++;
-            });
-        }
-
         function startGame() {
-            gameActive = true;
-            score = 0; coins = 0; speed = 1.0; currentLane = 1;
-            obstacles.forEach(o => scene.remove(o));
-            coinList.forEach(c => scene.remove(c));
-            obstacles = []; coinList = [];
-
-            loadPlayerVehicle(selectedModel);
-            document.getElementById('menu-overlay').style.display = 'none';
-
-            setInterval(() => { if (gameActive) spawnTraffic(); }, 1400);
+            document.getElementById('menu').style.display = 'none';
+            buildDetailedVehicle(selectedVehicle);
         }
 
-        function gameOver() {
-            gameActive = false;
-            document.getElementById('menu-title').innerText = "CRASHED!";
-            document.getElementById('menu-sub').innerText = `Score: ${Math.floor(score)} | Coins: ${coins}`;
-            document.getElementById('menu-overlay').style.display = 'flex';
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (gameActive) {
-                score += 0.2;
-                speed = Math.min(speed + 0.0001, 2.2);
-
-                document.getElementById('score').innerText = Math.floor(score);
-                document.getElementById('coins').innerText = coins;
-                document.getElementById('speed').innerText = Math.floor(speed * 100);
-
-                if (player) {
-                    player.position.x += (LANES[currentLane] - player.position.x) * 0.2;
-                }
-
-                roadTiles.forEach(tile => {
-                    tile.position.z += speed;
-                    if (tile.position.z > 50) tile.position.z -= 400;
-                });
-
-                for (let i = obstacles.length - 1; i >= 0; i--) {
-                    let obs = obstacles[i];
-                    obs.position.z += speed;
-                    if (player && Math.abs(obs.position.z - player.position.z) < 2.0 && Math.abs(obs.position.x - player.position.x) < 1.2) {
-                        gameOver();
-                    }
-                    if (obs.position.z > 10) { scene.remove(obs); obstacles.splice(i, 1); }
-                }
-
-                for (let i = coinList.length - 1; i >= 0; i--) {
-                    let coin = coinList[i];
-                    coin.position.z += speed;
-                    coin.rotation.z += 0.08;
-                    if (player && Math.abs(coin.position.z - player.position.z) < 1.5 && Math.abs(coin.position.x - player.position.x) < 1.2) {
-                        coins += 1;
-                        triggerAtavaCoinAnimation();
-                        scene.remove(coin);
-                        coinList.splice(i, 1);
-                    } else if (coin.position.z > 10) { scene.remove(coin); coinList.splice(i, 1); }
-                }
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        function onResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        function moveLeft() { if(currentLane > 0) { currentLane--; player.position.x = lanes[currentLane]; } }
+        function moveRight() { if(currentLane < 3) { currentLane++; player.position.x = lanes[currentLane]; } }
 
         init();
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
         animate();
     </script>
 </body>
