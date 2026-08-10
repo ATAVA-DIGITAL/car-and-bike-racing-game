@@ -3,208 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ATAVA Highway Racer</title>
+    <title>ATAVA HD Highway Racer</title>
     <style>
-        body {
-            margin: 0; padding: 0; overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            background: #0f172a; user-select: none;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background: #111;
+            box-shadow: 0 0 20px rgba(255, 51, 0, 0.4);
         }
 
-        #ui-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column;
-            justify-content: space-between; z-index: 10;
+        .hud {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; padding: 12px;
+            display: flex; justify-content: space-around;
+            background: rgba(0,0,0,0.7); color: #fff; font-weight: bold;
+            border-bottom: 2px solid #ff3300; z-index: 10;
         }
 
-        .hud-header {
-            background: rgba(0,0,0,0.6); padding: 12px 20px;
-            color: #fff; font-weight: bold; display: flex;
-            justify-content: space-around; border-bottom: 2px solid #ff3300;
-        }
-
-        .menu-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0b0f19; z-index: 20; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box; pointer-events: auto;
-        }
-
-        h1 { color: #ff3300; margin-bottom: 5px; text-align: center; }
-        .sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
-
-        /* Vehicle Card Selection */
-        .card-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
-            width: 100%; max-width: 450px; margin-bottom: 20px;
-        }
-
-        .vehicle-card {
-            background: #1e293b; border: 2px solid #334155; border-radius: 12px;
-            padding: 10px; text-align: center; color: white; cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .vehicle-card.selected {
-            border-color: #ff3300; background: #2b1215;
-            box-shadow: 0 0 15px rgba(255, 51, 0, 0.4);
-        }
-
-        .vehicle-card img {
-            width: 100%; height: 70px; object-fit: contain; margin-bottom: 5px;
-        }
-
-        .card-title { font-weight: bold; font-size: 0.9rem; }
-        .card-type { font-size: 0.75rem; color: #ffaa00; }
-
-        .btn-start {
-            background: linear-gradient(45deg, #ff3300, #ff8800); border: none;
-            color: white; padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
-            border-radius: 30px; cursor: pointer; width: 100%; max-width: 450px;
-        }
+        .hud div span { color: #f59e0b; }
 
         .controls {
-            display: flex; justify-content: space-between; padding: 20px 40px;
-            pointer-events: auto;
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; display: flex; justify-content: space-between;
+            padding: 0 30px; box-sizing: border-box; z-index: 10;
         }
 
-        .ctrl-btn {
-            width: 70px; height: 70px; background: rgba(255,255,255,0.2);
-            border: 2px solid #fff; border-radius: 50%; color: white;
-            font-size: 2rem; display: flex; align-items: center; justify-content: center;
+        .btn {
+            width: 70px; height: 70px; background: rgba(255, 255, 255, 0.25);
+            border: 3px solid rgba(255, 255, 255, 0.7); border-radius: 50%;
+            color: white; font-size: 2rem; display: flex; align-items: center;
+            justify-content: center; backdrop-filter: blur(5px);
         }
+
+        .menu {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 15, 25, 0.95); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 20; color: white;
+            padding: 20px; text-align: center;
+        }
+
+        .menu h1 { color: #ff3300; margin-bottom: 5px; }
+        .menu p { color: #94a3b8; margin-bottom: 20px; font-size: 0.9rem; }
+
+        .start-btn {
+            background: linear-gradient(45deg, #ff3300, #ffaa00); border: none;
+            color: white; padding: 15px 40px; font-size: 1.2rem; font-weight: bold;
+            border-radius: 30px; cursor: pointer; margin-top: 20px;
+        }
+
+        .footer { margin-top: 20px; font-size: 0.8rem; color: #ffaa00; font-weight: bold; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div id="ui-overlay">
-        <div class="hud-header">
-            <div>SCORE: <span id="score">0</span></div>
-            <div>COINS: <span id="coins">0</span></div>
-            <div>KM/H: <span id="speed">100</span></div>
-        </div>
-
-        <div class="controls">
-            <div class="ctrl-btn" onclick="moveLeft()">🠈</div>
-            <div class="ctrl-btn" onclick="moveRight()">🠊</div>
-        </div>
+    <div class="hud">
+        <div>SCORE: <span id="score">0</span></div>
+        <div>COINS: <span id="coins">0</span></div>
+        <div>SPEED: <span id="speed">120</span> KM/H</div>
     </div>
 
-    <!-- Selection Cards -->
-    <div id="menu" class="menu-screen">
-        <h1>HIGHWAY SPEED RACER</h1>
-        <div class="sub">Choose Your Ride</div>
+    <canvas id="gameCanvas"></canvas>
 
-        <div class="card-grid">
-            <div class="vehicle-card selected" onclick="selectCard('thar', this)">
-                <div class="card-title">Mahindra Thar</div>
-                <div class="card-type">4x4 SUV</div>
-            </div>
-            <div class="vehicle-card" onclick="selectCard('scorpio', this)">
-                <div class="card-title">Scorpio-N</div>
-                <div class="card-type">Big SUV</div>
-            </div>
-            <div class="vehicle-card" onclick="selectCard('classic', this)">
-                <div class="card-title">RE Classic 350</div>
-                <div class="card-type">Bullet Bike</div>
-            </div>
-            <div class="vehicle-card" onclick="selectCard('mt15', this)">
-                <div class="card-title">Yamaha MT-15</div>
-                <div class="card-type">Sports Bike</div>
-            </div>
-        </div>
+    <div class="controls">
+        <div class="btn" id="leftBtn">🠈</div>
+        <div class="btn" id="rightBtn">🠊</div>
+    </div>
 
-        <button class="btn-start" onclick="startGame()">START RACE 🚀</button>
+    <div class="menu" id="menu">
+        <h1>ATAVA HIGHWAY SPEED RACER</h1>
+        <p>HD Track & Traffic Mode</p>
+        <button class="start-btn" onclick="startGame()">START RACE 🚀</button>
+        <div class="footer">POWERED BY ATAVA DIGITAL SERVICES & TRADING</div>
     </div>
 
     <script>
-        let scene, camera, renderer, player;
-        let selectedVehicle = 'thar';
-        let currentLane = 1;
-        const lanes = [-3, -1, 1, 3];
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        function selectCard(type, el) {
-            selectedVehicle = type;
-            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
+        // Set dimensions suitable for mobile/desktop
+        canvas.width = Math.min(window.innerWidth, 500);
+        canvas.height = window.innerHeight;
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb);
+        let gameActive = false;
+        let score = 0, coins = 0;
+        let roadOffset = 0;
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 3, 6);
+        const lanes = [canvas.width * 0.25, canvas.width * 0.42, canvas.width * 0.58, canvas.width * 0.75];
+        let playerLane = 1;
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+        // Player Vehicle Object
+        const player = {
+            x: lanes[playerLane],
+            y: canvas.height - 150,
+            width: 45,
+            height: 85,
+            color: '#00e676' // Bright Racing Green like image
+        };
 
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(0, 10, 10);
-            scene.add(light);
+        let traffic = [];
 
-            createRoad();
-        }
+        function drawRoad() {
+            // Asphalt Road
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        function createRoad() {
-            const roadGeo = new THREE.PlaneGeometry(10, 200);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            scene.add(road);
-        }
+            // Red & White Side Guard Rails (Matching Photo)
+            const railWidth = 20;
+            const stripeHeight = 40;
+            
+            for (let y = -stripeHeight + (roadOffset % stripeHeight); y < canvas.height; y += stripeHeight) {
+                // Left Barrier
+                ctx.fillStyle = (Math.floor((y - roadOffset) / stripeHeight) % 2 === 0) ? '#d32f2f' : '#ffffff';
+                ctx.fillRect(0, y, railWidth, stripeHeight);
 
-        function buildDetailedVehicle(type) {
-            if(player) scene.remove(player);
-            player = new THREE.Group();
-
-            if(type === 'classic' || type === 'mt15') {
-                // Bike Structure (Sleek Shape)
-                const body = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.5, 0.8, 1.8),
-                    new THREE.MeshStandardMaterial({ color: type === 'mt15' ? 0x0066ff : 0x004411 })
-                );
-                body.position.y = 0.5;
-                player.add(body);
-            } else {
-                // Car/SUV Structure (Layered 3D)
-                const base = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.6, 0.8, 3.0),
-                    new THREE.MeshStandardMaterial({ color: type === 'thar' ? 0xcc0000 : 0x111111 })
-                );
-                base.position.y = 0.5;
-
-                const top = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.4, 0.7, 1.6),
-                    new THREE.MeshStandardMaterial({ color: 0x222222 })
-                );
-                top.position.set(0, 1.1, -0.2);
-
-                player.add(base);
-                player.add(top);
+                // Right Barrier
+                ctx.fillRect(canvas.width - railWidth, y, railWidth, stripeHeight);
             }
 
-            player.position.x = lanes[currentLane];
-            scene.add(player);
-            camera.lookAt(player.position);
+            // Double Solid Center Lines
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(canvas.width / 2 - 6, 0, 3, canvas.height);
+            ctx.fillRect(canvas.width / 2 + 3, 0, 3, canvas.height);
+
+            // Lane Dash Lines
+            ctx.setLineDash([20, 20]);
+            ctx.lineDashOffset = -roadOffset;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.33, 0); ctx.lineTo(canvas.width * 0.33, canvas.height);
+            ctx.moveTo(canvas.width * 0.66, 0); ctx.lineTo(canvas.width * 0.66, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawPlayer() {
+            // Smooth movement between lanes
+            player.x += (lanes[playerLane] - player.x) * 0.2;
+
+            // Car Body
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.roundRect(player.x - player.width/2, player.y, player.width, player.height, 10);
+            ctx.fill();
+
+            // Glass/Roof
+            ctx.fillStyle = '#111';
+            ctx.fillRect(player.x - player.width/2 + 5, player.y + 20, player.width - 10, 30);
+
+            // Spoiler Wing
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(player.x - player.width/2 - 2, player.y + player.height - 8, player.width + 4, 6);
+
+            // Exhaust Boost Glow (Like image)
+            ctx.fillStyle = '#00e5ff';
+            ctx.fillRect(player.x - 12, player.y + player.height, 8, 12);
+            ctx.fillRect(player.x + 4, player.y + player.height, 8, 12);
+        }
+
+        function spawnTraffic() {
+            if (Math.random() < 0.03) {
+                const laneIdx = Math.floor(Math.random() * 4);
+                traffic.push({
+                    x: lanes[laneIdx],
+                    y: -100,
+                    width: 42,
+                    height: 80,
+                    color: Math.random() > 0.5 ? '#ff1744' : '#29b6f6',
+                    speed: 4 + Math.random() * 3
+                });
+            }
+        }
+
+        function updateTraffic() {
+            for (let i = traffic.length - 1; i >= 0; i--) {
+                let t = traffic[i];
+                t.y += t.speed;
+
+                // Draw Traffic Vehicles
+                ctx.fillStyle = t.color;
+                ctx.beginPath();
+                ctx.roundRect(t.x - t.width/2, t.y, t.width, t.height, 8);
+                ctx.fill();
+
+                // Collision Check
+                if (Math.abs(t.x - player.x) < 30 && Math.abs(t.y - player.y) < 60) {
+                    gameOver();
+                }
+
+                if (t.y > canvas.height + 100) traffic.splice(i, 1);
+            }
         }
 
         function startGame() {
             document.getElementById('menu').style.display = 'none';
-            buildDetailedVehicle(selectedVehicle);
+            gameActive = true;
+            score = 0; coins = 0; traffic = [];
+            animate();
         }
 
-        function moveLeft() { if(currentLane > 0) { currentLane--; player.position.x = lanes[currentLane]; } }
-        function moveRight() { if(currentLane < 3) { currentLane++; player.position.x = lanes[currentLane]; } }
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('menu').style.display = 'flex';
+            document.querySelector('.menu h1').innerText = "CRASHED!";
+        }
 
-        init();
         function animate() {
+            if (!gameActive) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            roadOffset += 12;
+            score += 0.5;
+
+            document.getElementById('score').innerText = Math.floor(score);
+
+            drawRoad();
+            drawPlayer();
+            spawnTraffic();
+            updateTraffic();
+
             requestAnimationFrame(animate);
-            renderer.render(scene, camera);
         }
-        animate();
+
+        // Controls
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (playerLane > 0) playerLane--;
+        });
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (playerLane < 3) playerLane++;
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && playerLane > 0) playerLane--;
+            if (e.key === 'ArrowRight' && playerLane < 3) playerLane++;
+        });
     </script>
 </body>
 </html>
