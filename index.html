@@ -15,60 +15,69 @@
             box-shadow: 0 0 50px rgba(255, 51, 0, 0.4);
         }
 
-        /* Top Company Header Glow */
+        /* Top Company Banner */
         .company-banner {
             position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.95);
-            border-bottom: 3px solid #ff3300; text-align: center; padding: 8px 10px;
-            z-index: 15; backdrop-filter: blur(8px);
+            width: 100%; max-width: 500px; background: #0f172a;
+            border-bottom: 2px solid #ff3300; text-align: center; padding: 6px 8px;
+            z-index: 15;
         }
 
         .company-title {
-            color: #ffaa00; font-weight: 900; font-size: 0.95rem; letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+            color: #ffaa00; font-weight: 900; font-size: 0.85rem; letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
         }
 
         .company-services {
-            color: #38bdf8; font-size: 0.7rem; font-weight: 600; margin-top: 3px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            color: #38bdf8; font-size: 0.65rem; font-weight: 600; margin-top: 2px;
         }
 
+        /* Score & Speed HUD */
         .hud {
-            position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px; padding: 8px 15px;
+            position: absolute; top: 42px; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; padding: 6px 12px;
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(30, 41, 59, 0.85); color: #fff; font-weight: bold;
-            z-index: 10; font-size: 0.85rem;
+            background: rgba(30, 41, 59, 0.95); color: #fff; font-weight: bold;
+            z-index: 10; font-size: 0.8rem; border-bottom: 1px solid #334155;
         }
 
-        .hud span { color: #f59e0b; font-size: 1.05rem; }
+        .hud span { color: #f59e0b; font-size: 0.95rem; }
 
-        .speed-slider { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: #cbd5e1; }
-        .speed-slider input { width: 70px; cursor: pointer; }
+        .speed-slider { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: #cbd5e1; }
+        .speed-slider input { width: 60px; cursor: pointer; }
 
+        /* Real Accelerator & Controls Pedals */
         .controls-container {
             position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 500px; display: flex; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box; z-index: 10; pointer-events: none;
+            padding: 0 15px; box-sizing: border-box; z-index: 10; pointer-events: none;
         }
 
         .steer-group, .pedal-group { display: flex; gap: 10px; pointer-events: auto; align-items: flex-end; }
 
         .btn-steer {
-            width: 60px; height: 60px; background: rgba(255, 255, 255, 0.2);
+            width: 58px; height: 58px; background: rgba(255, 255, 255, 0.2);
             border: 3px solid rgba(255, 255, 255, 0.8); border-radius: 50%;
-            color: white; font-size: 1.6rem; display: flex; align-items: center;
+            color: white; font-size: 1.5rem; display: flex; align-items: center;
             justify-content: center; backdrop-filter: blur(8px); cursor: pointer; user-select: none;
         }
         .btn-steer:active { background: rgba(255, 51, 0, 0.6); }
 
+        /* Stylized Pedal Design */
         .pedal-btn {
-            width: 52px; height: 80px; background: linear-gradient(180deg, #334155, #0f172a);
-            border: 3px solid #94a3b8; border-radius: 12px; color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;
+            width: 50px; height: 80px; background: linear-gradient(180deg, #475569, #0f172a);
+            border: 3px solid #94a3b8; border-radius: 10px; color: #fff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .pedal-accel { border-color: #38bdf8; color: #38bdf8; }
+
+        .pedal-accel {
+            height: 95px; background: linear-gradient(180deg, #0284c7, #0f172a);
+            border-color: #38bdf8; color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+        .pedal-accel:active { background: #38bdf844; }
 
         .menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -113,12 +122,14 @@
         <div class="company-services">Data Entry • Typing Works • Poster & Badge Design • Digital Services</div>
     </div>
 
+    <!-- HUD -->
     <div class="hud">
         <div>SCORE: <span id="score">0</span></div>
-        <div>ATAVA COINS: <span id="coins">0</span></div>
+        <div>COINS: <span id="coins">0</span></div>
         <div class="speed-slider">
             SPD: <input type="range" id="speedAdjuster" min="6" max="24" value="12">
         </div>
+        <div><span id="speedVal">120</span> KM/H</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -193,16 +204,15 @@
         }
 
         function drawRoad() {
-            ctx.fillStyle = '#064e3b'; // Side Grass
+            ctx.fillStyle = '#064e3b';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const roadW = canvas.width * 0.84;
             const roadLeft = (canvas.width - roadW) / 2;
 
-            ctx.fillStyle = '#1e293b'; // Highway Asphalt
+            ctx.fillStyle = '#1e293b';
             ctx.fillRect(roadLeft, 0, roadW, canvas.height);
 
-            // Red White Side Barriers
             const stripeH = 30;
             for (let y = -stripeH + (roadOffset % stripeH); y < canvas.height; y += stripeH) {
                 let c = (Math.floor((y - roadOffset) / stripeH) % 2 === 0) ? '#ef4444' : '#ffffff';
@@ -211,12 +221,10 @@
                 ctx.fillRect(roadLeft + roadW, y, 8, stripeH);
             }
 
-            // Yellow Double Divider
             ctx.fillStyle = '#f59e0b';
             ctx.fillRect(canvas.width / 2 - 3, 0, 3, canvas.height);
             ctx.fillRect(canvas.width / 2 + 1, 0, 3, canvas.height);
 
-            // Dashed Lines
             ctx.setLineDash([18, 18]);
             ctx.lineDashOffset = -roadOffset;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
@@ -233,22 +241,22 @@
             ctx.translate(x, y);
 
             ctx.fillStyle = '#000';
-            ctx.fillRect(-24, -10, 6, 8); ctx.fillRect(18, -10, 6, 8); // Mirrors
+            ctx.fillRect(-24, -10, 6, 8); ctx.fillRect(18, -10, 6, 8);
 
             ctx.fillStyle = color;
             ctx.beginPath(); ctx.roundRect(-20, -38, 40, 76, [12, 12, 8, 8]); ctx.fill();
 
             ctx.fillStyle = '#090d16';
-            ctx.beginPath(); ctx.roundRect(-15, -18, 30, 36, 6); ctx.fill(); // Roof/Cabin
+            ctx.beginPath(); ctx.roundRect(-15, -18, 30, 36, 6); ctx.fill();
 
             ctx.fillStyle = color;
             ctx.fillRect(-13, -5, 26, 16);
 
             ctx.fillStyle = '#000000';
-            ctx.fillRect(-22, 30, 44, 6); // Wing
+            ctx.fillRect(-22, 30, 44, 6);
 
             ctx.fillStyle = '#ef4444';
-            ctx.fillRect(-17, 36, 8, 3); ctx.fillRect(9, 36, 8, 3); // Tail Lights
+            ctx.fillRect(-17, 36, 8, 3); ctx.fillRect(9, 36, 8, 3);
 
             ctx.restore();
         }
@@ -286,7 +294,6 @@
             ctx.fillStyle = '#fbbf24';
             ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
 
-            // 'A' for ATAVA Branding on Coin
             ctx.fillStyle = '#000000';
             ctx.font = 'bold 12px Segoe UI';
             ctx.textAlign = 'center';
@@ -304,7 +311,7 @@
             else if (selectedType === 'bike') drawBikeRider(player.x, player.y, '#2563eb');
             else drawBikeRider(player.x, player.y, '#10b981');
 
-            // Nitro/Smoke
+            // Nitro Smoke Particles
             particles.push({
                 x: player.x + (Math.random() * 6 - 3),
                 y: player.y + 36,
@@ -321,21 +328,26 @@
             }
         }
 
+        // FIXED: Overlapping Traffic Logic
         function spawnObjects() {
-            if (Math.random() < 0.03) {
+            if (Math.random() < 0.025) {
                 let laneIdx = Math.floor(Math.random() * 4);
                 let targetX = lanes[laneIdx];
-                let safe = true;
+                let safeToSpawn = true;
 
+                // Ensure at least 220px vertical distance between traffic cars
                 for (let t of traffic) {
-                    if (Math.abs(t.x - targetX) < 10 && t.y < 180) safe = false;
+                    if (Math.abs(t.x - targetX) < 15 && t.y < 220) {
+                        safeToSpawn = false;
+                        break;
+                    }
                 }
 
-                if (safe) {
+                if (safeToSpawn) {
                     traffic.push({
-                        x: targetX, y: -100,
+                        x: targetX, y: -120,
                         color: ['#059669', '#d97706', '#2563eb', '#9333ea'][Math.floor(Math.random()*4)],
-                        speed: 3 + Math.random() * 3
+                        speed: 3 + Math.random() * 2
                     });
                 }
             }
@@ -347,7 +359,9 @@
         }
 
         function updateGame() {
-            // Traffic
+            document.getElementById('speedVal').innerText = Math.floor(currentSpeed * 10);
+
+            // Traffic Update
             for (let i = traffic.length - 1; i >= 0; i--) {
                 let t = traffic[i];
                 t.y += currentSpeed - t.speed;
@@ -357,7 +371,7 @@
                 if (t.y > canvas.height + 100) traffic.splice(i, 1);
             }
 
-            // ATAVA Coins
+            // Coins Update
             for (let i = coinList.length - 1; i >= 0; i--) {
                 let coin = coinList[i];
                 coin.y += currentSpeed;
@@ -371,7 +385,7 @@
                 } else if (coin.y > canvas.height + 50) coinList.splice(i, 1);
             }
 
-            // ATAVA Coin Popup Effect
+            // ATAVA Text Animation
             for (let i = popups.length - 1; i >= 0; i--) {
                 let p = popups[i];
                 p.y -= 2.5; p.alpha -= 0.03;
