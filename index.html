@@ -59,13 +59,18 @@
             width: 50px; height: 80px; background: linear-gradient(180deg, #475569, #0f172a);
             border: 3px solid #94a3b8; border-radius: 10px; color: #fff;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.7rem; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
+
+        .pedal-brake { border-color: #ef4444; color: #ef4444; }
+        .pedal-brake:active { background: #ef444444; }
 
         .pedal-accel {
             height: 95px; background: linear-gradient(180deg, #0284c7, #0f172a);
             border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
+        .pedal-accel:active { background: #38bdf844; }
 
         .menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -109,7 +114,7 @@
             <div class="btn-steer" id="rightBtn">▶</div>
         </div>
         <div class="pedal-group">
-            <div class="pedal-btn" id="brakeBtn">BRAKE</div>
+            <div class="pedal-btn pedal-brake" id="brakeBtn">BRAKE</div>
             <div class="pedal-btn pedal-accel" id="accelBtn">GAS ⚡</div>
         </div>
     </div>
@@ -140,15 +145,33 @@
         let roadOffset = 0;
         let customCarImg = null;
 
-        const stageColors = ['#064e3b', '#1e1b4b', '#701a75', '#450a0a']; // Stage Grass Colors
+        const stageColors = ['#064e3b', '#1e1b4b', '#701a75', '#450a0a'];
 
-        const lanes = [canvas.width * 0.20, canvas.width * 0.40, canvas.width * 0.60, canvas.width * 0.80];
+        const lanes = [canvas.width * 0.22, canvas.width * 0.40, canvas.width * 0.60, canvas.width * 0.78];
         let playerLane = 1;
         const player = { x: lanes[playerLane], y: canvas.height - 160 };
 
         let traffic = [];
         let coinList = [];
         let popups = [];
+        let trees = [];
+
+        // Audio Context for Coin Sound
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playCoinSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
 
         // Upload custom car photo logic
         document.getElementById('carPhotoInput').addEventListener('change', function(e) {
@@ -164,36 +187,67 @@
             }
         });
 
+        // Initialize Side Trees
+        for (let i = 0; i < 8; i++) {
+            trees.push({ x: 15, y: i * 100, side: 'left' });
+            trees.push({ x: canvas.width - 15, y: i * 100, side: 'right' });
+        }
+
+        function drawTree(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            // Trunk
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(-3, 0, 6, 12);
+            // Leaves
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath(); ctx.arc(0, -6, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath(); ctx.arc(-3, -8, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
         function drawRoad() {
-            ctx.fillStyle = stageColors[(stage - 1) % stageColors.length]; // Dynamic Stage Colors
+            ctx.fillStyle = stageColors[(stage - 1) % stageColors.length];
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const roadW = canvas.width * 0.84;
+            const roadW = canvas.width * 0.72;
             const roadLeft = (canvas.width - roadW) / 2;
 
+            // Road Surface
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(roadLeft, 0, roadW, canvas.height);
 
+            // Side Kerbs
             const stripeH = 30;
             for (let y = -stripeH + (roadOffset % stripeH); y < canvas.height; y += stripeH) {
                 let c = (Math.floor((y - roadOffset) / stripeH) % 2 === 0) ? '#ef4444' : '#ffffff';
                 ctx.fillStyle = c;
-                ctx.fillRect(roadLeft - 8, y, 8, stripeH);
-                ctx.fillRect(roadLeft + roadW, y, 8, stripeH);
+                ctx.fillRect(roadLeft - 6, y, 6, stripeH);
+                ctx.fillRect(roadLeft + roadW, y, 6, stripeH);
             }
 
+            // Yellow Divider
             ctx.fillStyle = '#f59e0b';
             ctx.fillRect(canvas.width / 2 - 2, 0, 4, canvas.height);
 
+            // Dashed Lane Lines
             ctx.setLineDash([18, 18]);
             ctx.lineDashOffset = -roadOffset;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(canvas.width * 0.30, 0); ctx.lineTo(canvas.width * 0.30, canvas.height);
-            ctx.moveTo(canvas.width * 0.70, 0); ctx.lineTo(canvas.width * 0.70, canvas.height);
+            ctx.moveTo(canvas.width * 0.31, 0); ctx.lineTo(canvas.width * 0.31, canvas.height);
+            ctx.moveTo(canvas.width * 0.69, 0); ctx.lineTo(canvas.width * 0.69, canvas.height);
             ctx.stroke();
             ctx.setLineDash([]);
+
+            // Draw & Move Side Trees
+            for (let t of trees) {
+                t.y += currentSpeed;
+                if (t.y > canvas.height + 20) t.y = -30;
+                drawTree(t.x, t.y);
+            }
         }
 
         function drawPlayer() {
@@ -207,15 +261,15 @@
             }
         }
 
-        // CONTROLLED REDUCED TRAFFIC SPAWN
+        // REDUCED TRAFFIC LOGIC (Plenty of Space)
         function spawnObjects() {
-            if (Math.random() < 0.012) { // Traffic frequency reduced
+            if (traffic.length < 2 && Math.random() < 0.008) { // Very low density
                 let laneIdx = Math.floor(Math.random() * 4);
                 let targetX = lanes[laneIdx];
                 let safeToSpawn = true;
 
                 for (let t of traffic) {
-                    if (Math.abs(t.x - targetX) < 20 && t.y < 350) { // Large safe gap
+                    if (Math.abs(t.x - targetX) < 20 || t.y < 400) {
                         safeToSpawn = false;
                         break;
                     }
@@ -225,24 +279,23 @@
                     traffic.push({
                         x: targetX, y: -120,
                         color: ['#059669', '#d97706', '#2563eb'][Math.floor(Math.random()*3)],
-                        speed: 3 + Math.random() * 2
+                        speed: 2 + Math.random() * 2
                     });
                 }
             }
 
-            if (Math.random() < 0.015) {
+            if (Math.random() < 0.012) {
                 let laneIdx = Math.floor(Math.random() * 4);
                 coinList.push({ x: lanes[laneIdx], y: -50 });
             }
         }
 
         function updateGame() {
-            // Stage Progression Logic
             let currentStage = Math.floor(score / 500) + 1;
             if (currentStage !== stage) {
                 stage = currentStage;
                 document.getElementById('stageBadge').innerText = `STAGE ${stage}`;
-                popups.push({ x: canvas.width/2 - 50, y: canvas.height/2, text: `STAGE ${stage}! 🚀`, alpha: 1.5 });
+                popups.push({ x: canvas.width/2 - 60, y: canvas.height/2, text: `STAGE ${stage}! 🚀`, alpha: 1.5 });
             }
 
             for (let i = traffic.length - 1; i >= 0; i--) {
@@ -251,7 +304,7 @@
                 ctx.fillStyle = t.color;
                 ctx.beginPath(); ctx.roundRect(t.x - 18, t.y - 35, 36, 70, 8); ctx.fill();
 
-                if (Math.abs(t.x - player.x) < 28 && Math.abs(t.y - player.y) < 50) gameOver();
+                if (Math.abs(t.x - player.x) < 26 && Math.abs(t.y - player.y) < 48) gameOver();
                 if (t.y > canvas.height + 100) traffic.splice(i, 1);
             }
 
@@ -264,11 +317,11 @@
                 if (Math.abs(coin.x - player.x) < 25 && Math.abs(coin.y - player.y) < 35) {
                     coins += 10;
                     document.getElementById('coins').innerText = coins;
+                    playCoinSound(); // Audio trigger
                     coinList.splice(i, 1);
                 } else if (coin.y > canvas.height + 50) coinList.splice(i, 1);
             }
 
-            // Stage change Popups
             for (let i = popups.length - 1; i >= 0; i--) {
                 let p = popups[i];
                 p.y -= 1; p.alpha -= 0.02;
@@ -286,6 +339,7 @@
             gameActive = true;
             score = 0; coins = 0; stage = 1; traffic = []; coinList = [];
             document.getElementById('stageBadge').innerText = `STAGE 1`;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             animate();
         }
 
@@ -312,11 +366,33 @@
         document.getElementById('leftBtn').addEventListener('click', () => { if (playerLane > 0) playerLane--; });
         document.getElementById('rightBtn').addEventListener('click', () => { if (playerLane < 3) playerLane++; });
 
+        // WORKING ACCELERATOR & BRAKE CONTROLS
         const accelBtn = document.getElementById('accelBtn');
+        const brakeBtn = document.getElementById('brakeBtn');
+
+        // Gas Pedal
         accelBtn.addEventListener('mousedown', () => currentSpeed = baseSpeed * 1.8);
         accelBtn.addEventListener('mouseup', () => currentSpeed = baseSpeed);
         accelBtn.addEventListener('touchstart', (e) => { e.preventDefault(); currentSpeed = baseSpeed * 1.8; });
         accelBtn.addEventListener('touchend', () => currentSpeed = baseSpeed);
+
+        // Brake Pedal
+        brakeBtn.addEventListener('mousedown', () => currentSpeed = baseSpeed * 0.25);
+        brakeBtn.addEventListener('mouseup', () => currentSpeed = baseSpeed);
+        brakeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); currentSpeed = baseSpeed * 0.25; });
+        brakeBtn.addEventListener('touchend', () => currentSpeed = baseSpeed);
+
+        // Keyboard Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') if (playerLane > 0) playerLane--;
+            if (e.key === 'ArrowRight') if (playerLane < 3) playerLane++;
+            if (e.key === 'ArrowUp') currentSpeed = baseSpeed * 1.8;
+            if (e.key === 'ArrowDown') currentSpeed = baseSpeed * 0.25;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') currentSpeed = baseSpeed;
+        });
     </script>
 </body>
 </html>
