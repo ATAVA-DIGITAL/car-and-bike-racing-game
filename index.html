@@ -3,36 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ATAVA HD Pro Highway Racing</title>
+    <title>ATAVA Digital Services - Highway Racer</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #050811; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #030712; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; }
         
         #gameCanvas {
             display: block;
             margin: 0 auto;
             background: #0f172a;
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
+            box-shadow: 0 0 50px rgba(255, 51, 0, 0.4);
+        }
+
+        /* Top Company Header Glow */
+        .company-banner {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.95);
+            border-bottom: 3px solid #ff3300; text-align: center; padding: 8px 10px;
+            z-index: 15; backdrop-filter: blur(8px);
+        }
+
+        .company-title {
+            color: #ffaa00; font-weight: 900; font-size: 0.95rem; letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+        }
+
+        .company-services {
+            color: #38bdf8; font-size: 0.7rem; font-weight: 600; margin-top: 3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
         .hud {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px; padding: 10px 15px;
+            position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; padding: 8px 15px;
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 23, 42, 0.95); color: #fff; font-weight: bold;
-            border-bottom: 3px solid #ff3300; z-index: 10; backdrop-filter: blur(10px);
+            background: rgba(30, 41, 59, 0.85); color: #fff; font-weight: bold;
+            z-index: 10; font-size: 0.85rem;
         }
 
-        .hud span { color: #f59e0b; font-size: 1.1rem; }
+        .hud span { color: #f59e0b; font-size: 1.05rem; }
 
-        /* Speed Adjustment Slider in HUD */
-        .speed-slider-container {
-            display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #38bdf8;
-        }
-
-        .speed-slider-container input {
-            width: 80px; cursor: pointer;
-        }
+        .speed-slider { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: #cbd5e1; }
+        .speed-slider input { width: 70px; cursor: pointer; }
 
         .controls-container {
             position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
@@ -40,9 +52,7 @@
             padding: 0 20px; box-sizing: border-box; z-index: 10; pointer-events: none;
         }
 
-        .steer-group, .pedal-group {
-            display: flex; gap: 10px; pointer-events: auto; align-items: flex-end;
-        }
+        .steer-group, .pedal-group { display: flex; gap: 10px; pointer-events: auto; align-items: flex-end; }
 
         .btn-steer {
             width: 60px; height: 60px; background: rgba(255, 255, 255, 0.2);
@@ -50,16 +60,14 @@
             color: white; font-size: 1.6rem; display: flex; align-items: center;
             justify-content: center; backdrop-filter: blur(8px); cursor: pointer; user-select: none;
         }
-
         .btn-steer:active { background: rgba(255, 51, 0, 0.6); }
 
         .pedal-btn {
-            width: 50px; height: 80px; background: linear-gradient(180deg, #334155, #0f172a);
+            width: 52px; height: 80px; background: linear-gradient(180deg, #334155, #0f172a);
             border: 3px solid #94a3b8; border-radius: 12px; color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;
         }
-
         .pedal-accel { border-color: #38bdf8; color: #38bdf8; }
 
         .menu {
@@ -69,8 +77,8 @@
             padding: 20px; text-align: center;
         }
 
-        .menu h1 { color: #ff3300; font-size: 2rem; text-shadow: 0 0 15px rgba(255,51,0,0.6); }
-        .menu p { color: #94a3b8; margin-bottom: 20px; }
+        .menu h1 { color: #ff3300; font-size: 1.8rem; text-shadow: 0 0 15px rgba(255,51,0,0.6); }
+        .menu-subtitle { color: #ffaa00; font-size: 0.85rem; margin-bottom: 15px; font-weight: bold; }
 
         .garage {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -81,10 +89,7 @@
             background: #1e293b; border: 2px solid #334155; padding: 12px;
             border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem;
         }
-
-        .v-card.active {
-            border-color: #ff3300; background: #ff330022; color: #ff3300;
-        }
+        .v-card.active { border-color: #ff3300; background: #ff330022; color: #ff3300; }
 
         .start-btn {
             background: linear-gradient(45deg, #ff3300, #ffaa00); border: none;
@@ -92,18 +97,28 @@
             border-radius: 30px; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 51, 0, 0.5);
         }
 
-        .footer { margin-top: 25px; font-size: 0.8rem; color: #ffaa00; font-weight: bold; }
+        .ad-box {
+            margin-top: 20px; background: rgba(30, 41, 59, 0.9); border: 1px solid #38bdf8;
+            border-radius: 10px; padding: 10px 15px; width: 100%; max-width: 360px;
+            font-size: 0.75rem; color: #cbd5e1;
+        }
+        .ad-box span { color: #ff3300; font-weight: bold; }
     </style>
 </head>
 <body>
 
+    <!-- Main Branding Header -->
+    <div class="company-banner">
+        <div class="company-title">POWERED BY: ATAVA DIGITAL SERVICES & TRADING</div>
+        <div class="company-services">Data Entry • Typing Works • Poster & Badge Design • Digital Services</div>
+    </div>
+
     <div class="hud">
         <div>SCORE: <span id="score">0</span></div>
-        <div class="speed-slider-container">
-            SET SPEED:
-            <input type="range" id="speedAdjuster" min="5" max="25" value="12">
+        <div>ATAVA COINS: <span id="coins">0</span></div>
+        <div class="speed-slider">
+            SPD: <input type="range" id="speedAdjuster" min="6" max="24" value="12">
         </div>
-        <div>SPEED: <span id="speedVal">120</span></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -120,16 +135,21 @@
     </div>
 
     <div class="menu" id="menu">
-        <h1 id="menuTitle">ATAVA RACING PRO HD</h1>
-        <p>Choose Vehicle & Custom Speed</p>
+        <h1>ATAVA RACING ARENA</h1>
+        <div class="menu-subtitle">POWERED BY ATAVA DIGITAL SERVICES & TRADING</div>
 
         <div class="garage">
-            <div class="v-card active" onclick="selectVehicle('car', this)">🏎️ Red Supercar</div>
-            <div class="v-card" onclick="selectVehicle('bike', this)">🏍️ Superbike Rider</div>
+            <div class="v-card active" onclick="selectVehicle('car', this)">🏎️ Hypercar Red</div>
+            <div class="v-card" onclick="selectVehicle('yellowcar', this)">🏎️ GT Racer Yellow</div>
+            <div class="v-card" onclick="selectVehicle('bike', this)">🏍️ Ninja Superbike</div>
+            <div class="v-card" onclick="selectVehicle('tourerbike', this)">🏍️ Tourer Cruiser</div>
         </div>
 
         <button class="start-btn" onclick="startGame()">START RACE 🚀</button>
-        <div class="footer">POWERED BY ATAVA DIGITAL SERVICES & TRADING</div>
+
+        <div class="ad-box">
+            <span>ATAVA SERVICES:</span> Contact us for Data Entry, Custom Badges, Posters & Web Applications!
+        </div>
     </div>
 
     <script>
@@ -157,11 +177,11 @@
         const player = { x: lanes[playerLane], y: canvas.height - 160 };
 
         let traffic = [];
+        let coinList = [];
         let particles = [];
+        let popups = [];
 
-        // Speed Slider Control
-        const speedAdjuster = document.getElementById('speedAdjuster');
-        speedAdjuster.addEventListener('input', (e) => {
+        document.getElementById('speedAdjuster').addEventListener('input', (e) => {
             baseSpeed = parseInt(e.target.value);
             currentSpeed = baseSpeed;
         });
@@ -173,17 +193,16 @@
         }
 
         function drawRoad() {
-            // Road Base
-            ctx.fillStyle = '#0f172a';
+            ctx.fillStyle = '#064e3b'; // Side Grass
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const roadW = canvas.width * 0.84;
             const roadLeft = (canvas.width - roadW) / 2;
 
-            ctx.fillStyle = '#1e293b';
+            ctx.fillStyle = '#1e293b'; // Highway Asphalt
             ctx.fillRect(roadLeft, 0, roadW, canvas.height);
 
-            // Red-White Borders
+            // Red White Side Barriers
             const stripeH = 30;
             for (let y = -stripeH + (roadOffset % stripeH); y < canvas.height; y += stripeH) {
                 let c = (Math.floor((y - roadOffset) / stripeH) % 2 === 0) ? '#ef4444' : '#ffffff';
@@ -197,10 +216,10 @@
             ctx.fillRect(canvas.width / 2 - 3, 0, 3, canvas.height);
             ctx.fillRect(canvas.width / 2 + 1, 0, 3, canvas.height);
 
-            // Dashed Lanes
+            // Dashed Lines
             ctx.setLineDash([18, 18]);
             ctx.lineDashOffset = -roadOffset;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(canvas.width * 0.30, 0); ctx.lineTo(canvas.width * 0.30, canvas.height);
@@ -213,76 +232,66 @@
             ctx.save();
             ctx.translate(x, y);
 
-            // Side Mirrors
             ctx.fillStyle = '#000';
-            ctx.fillRect(-24, -10, 6, 8);
-            ctx.fillRect(18, -10, 6, 8);
+            ctx.fillRect(-24, -10, 6, 8); ctx.fillRect(18, -10, 6, 8); // Mirrors
 
-            // Car Main Body
             ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.roundRect(-20, -38, 40, 76, [12, 12, 8, 8]);
-            ctx.fill();
+            ctx.beginPath(); ctx.roundRect(-20, -38, 40, 76, [12, 12, 8, 8]); ctx.fill();
 
-            // Hood lines
-            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(-10, -30); ctx.lineTo(10, -30); ctx.stroke();
-
-            // Cabin / Glass
             ctx.fillStyle = '#090d16';
-            ctx.beginPath();
-            ctx.roundRect(-15, -18, 30, 36, 6);
-            ctx.fill();
+            ctx.beginPath(); ctx.roundRect(-15, -18, 30, 36, 6); ctx.fill(); // Roof/Cabin
 
-            // Roof top
             ctx.fillStyle = color;
             ctx.fillRect(-13, -5, 26, 16);
 
-            // Spoiler
             ctx.fillStyle = '#000000';
-            ctx.fillRect(-22, 30, 44, 6);
+            ctx.fillRect(-22, 30, 44, 6); // Wing
 
-            // Back Tail Lights Glow
             ctx.fillStyle = '#ef4444';
-            ctx.shadowColor = '#ef4444';
-            ctx.shadowBlur = 10;
-            ctx.fillRect(-17, 36, 8, 3);
-            ctx.fillRect(9, 36, 8, 3);
+            ctx.fillRect(-17, 36, 8, 3); ctx.fillRect(9, 36, 8, 3); // Tail Lights
 
             ctx.restore();
         }
 
-        function drawBikeRider(x, y) {
+        function drawBikeRider(x, y, color) {
             ctx.save();
             ctx.translate(x, y);
 
-            // Bike Rear Tire
             ctx.fillStyle = '#000';
             ctx.fillRect(-4, 15, 8, 22);
 
-            // Exhaust Pipes
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillRect(8, 10, 4, 15);
-
-            // Bike Body & Tank
-            ctx.fillStyle = '#2563eb';
+            ctx.fillStyle = color;
             ctx.fillRect(-8, -15, 16, 30);
 
-            // Rider Body (Leather Suit)
-            ctx.fillStyle = '#1e1b4b';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 12, 16, 0, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.ellipse(0, 0, 12, 16, 0, 0, Math.PI * 2); ctx.fill();
 
-            // Rider Shoulders / Arms
-            ctx.fillStyle = '#2563eb';
+            ctx.fillStyle = color;
             ctx.fillRect(-14, -8, 28, 8);
 
-            // Helmet
             ctx.fillStyle = '#ef4444';
             ctx.beginPath(); ctx.arc(0, -6, 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#000'; ctx.fillRect(-5, -9, 10, 4); // Visor
+            ctx.fillStyle = '#000'; ctx.fillRect(-5, -9, 10, 4);
+
+            ctx.restore();
+        }
+
+        function drawAtavaCoin(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
+
+            // 'A' for ATAVA Branding on Coin
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', 0, 1);
 
             ctx.restore();
         }
@@ -290,13 +299,12 @@
         function drawPlayer() {
             player.x += (lanes[playerLane] - player.x) * 0.25;
 
-            if (selectedType === 'car') {
-                drawCarBody(player.x, player.y, '#dc2626');
-            } else {
-                drawBikeRider(player.x, player.y);
-            }
+            if (selectedType === 'car') drawCarBody(player.x, player.y, '#dc2626');
+            else if (selectedType === 'yellowcar') drawCarBody(player.x, player.y, '#eab308');
+            else if (selectedType === 'bike') drawBikeRider(player.x, player.y, '#2563eb');
+            else drawBikeRider(player.x, player.y, '#10b981');
 
-            // Smoke
+            // Nitro/Smoke
             particles.push({
                 x: player.x + (Math.random() * 6 - 3),
                 y: player.y + 36,
@@ -307,18 +315,18 @@
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
                 p.y += 3; p.alpha -= 0.05;
-                ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+                ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
                 if (p.alpha <= 0) particles.splice(i, 1);
             }
         }
 
-        function spawnTraffic() {
-            if (Math.random() < 0.03) { // Higher density
+        function spawnObjects() {
+            if (Math.random() < 0.03) {
                 let laneIdx = Math.floor(Math.random() * 4);
                 let targetX = lanes[laneIdx];
-
                 let safe = true;
+
                 for (let t of traffic) {
                     if (Math.abs(t.x - targetX) < 10 && t.y < 180) safe = false;
                 }
@@ -331,11 +339,15 @@
                     });
                 }
             }
+
+            if (Math.random() < 0.02) {
+                let laneIdx = Math.floor(Math.random() * 4);
+                coinList.push({ x: lanes[laneIdx], y: -50 });
+            }
         }
 
         function updateGame() {
-            document.getElementById('speedVal').innerText = Math.floor(currentSpeed * 10) + ' KM/H';
-
+            // Traffic
             for (let i = traffic.length - 1; i >= 0; i--) {
                 let t = traffic[i];
                 t.y += currentSpeed - t.speed;
@@ -345,20 +357,44 @@
                 if (t.y > canvas.height + 100) traffic.splice(i, 1);
             }
 
+            // ATAVA Coins
+            for (let i = coinList.length - 1; i >= 0; i--) {
+                let coin = coinList[i];
+                coin.y += currentSpeed;
+                drawAtavaCoin(coin.x, coin.y);
+
+                if (Math.abs(coin.x - player.x) < 25 && Math.abs(coin.y - player.y) < 35) {
+                    coins += 10;
+                    document.getElementById('coins').innerText = coins;
+                    popups.push({ x: player.x, y: player.y - 20, alpha: 1.0 });
+                    coinList.splice(i, 1);
+                } else if (coin.y > canvas.height + 50) coinList.splice(i, 1);
+            }
+
+            // ATAVA Coin Popup Effect
+            for (let i = popups.length - 1; i >= 0; i--) {
+                let p = popups[i];
+                p.y -= 2.5; p.alpha -= 0.03;
+                ctx.fillStyle = `rgba(255, 204, 0, ${p.alpha})`;
+                ctx.font = 'bold 18px Segoe UI';
+                ctx.fillText('ATAVA +10 🪙', p.x - 40, p.y);
+                if (p.alpha <= 0) popups.splice(i, 1);
+            }
+
             roadOffset += currentSpeed;
         }
 
         function startGame() {
             document.getElementById('menu').style.display = 'none';
             gameActive = true;
-            score = 0; traffic = []; particles = [];
+            score = 0; coins = 0; traffic = []; coinList = []; particles = []; popups = [];
+            document.getElementById('coins').innerText = '0';
             animate();
         }
 
         function gameOver() {
             gameActive = false;
             document.getElementById('menu').style.display = 'flex';
-            document.getElementById('menuTitle').innerText = "CRASHED!";
         }
 
         function animate() {
@@ -370,7 +406,7 @@
 
             drawRoad();
             drawPlayer();
-            spawnTraffic();
+            spawnObjects();
             updateGame();
 
             requestAnimationFrame(animate);
