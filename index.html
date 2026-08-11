@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ATAVA HD Highway Racing</title>
+    <title>ATAVA HD Pro Highway Racing</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #050811; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -17,13 +17,22 @@
 
         .hud {
             position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px; padding: 12px 18px;
+            width: 100%; max-width: 500px; padding: 10px 15px;
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 23, 42, 0.9); color: #fff; font-weight: bold;
+            background: rgba(15, 23, 42, 0.95); color: #fff; font-weight: bold;
             border-bottom: 3px solid #ff3300; z-index: 10; backdrop-filter: blur(10px);
         }
 
         .hud span { color: #f59e0b; font-size: 1.1rem; }
+
+        /* Speed Adjustment Slider in HUD */
+        .speed-slider-container {
+            display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #38bdf8;
+        }
+
+        .speed-slider-container input {
+            width: 80px; cursor: pointer;
+        }
 
         .controls-container {
             position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
@@ -36,23 +45,22 @@
         }
 
         .btn-steer {
-            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.2);
+            width: 60px; height: 60px; background: rgba(255, 255, 255, 0.2);
             border: 3px solid rgba(255, 255, 255, 0.8); border-radius: 50%;
-            color: white; font-size: 1.8rem; display: flex; align-items: center;
+            color: white; font-size: 1.6rem; display: flex; align-items: center;
             justify-content: center; backdrop-filter: blur(8px); cursor: pointer; user-select: none;
         }
 
         .btn-steer:active { background: rgba(255, 51, 0, 0.6); }
 
         .pedal-btn {
-            width: 55px; height: 85px; background: linear-gradient(180deg, #334155, #0f172a);
+            width: 50px; height: 80px; background: linear-gradient(180deg, #334155, #0f172a);
             border: 3px solid #94a3b8; border-radius: 12px; color: #fff;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 0.75rem; font-weight: bold; cursor: pointer; user-select: none;
         }
 
         .pedal-accel { border-color: #38bdf8; color: #38bdf8; }
-        .pedal-accel:active { background: #38bdf844; }
 
         .menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -61,41 +69,41 @@
             padding: 20px; text-align: center;
         }
 
-        .menu h1 { color: #ff3300; font-size: 2.2rem; text-shadow: 0 0 15px rgba(255,51,0,0.6); }
+        .menu h1 { color: #ff3300; font-size: 2rem; text-shadow: 0 0 15px rgba(255,51,0,0.6); }
         .menu p { color: #94a3b8; margin-bottom: 20px; }
 
-        /* Vehicle Selector Grid */
         .garage {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            width: 100%; max-width: 360px; margin-bottom: 25px;
+            width: 100%; max-width: 360px; margin-bottom: 20px;
         }
 
         .v-card {
             background: #1e293b; border: 2px solid #334155; padding: 12px;
-            border-radius: 12px; cursor: pointer; transition: all 0.2s;
-            font-weight: bold; font-size: 0.9rem;
+            border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem;
         }
 
         .v-card.active {
             border-color: #ff3300; background: #ff330022; color: #ff3300;
-            box-shadow: 0 0 15px rgba(255, 51, 0, 0.3);
         }
 
         .start-btn {
             background: linear-gradient(45deg, #ff3300, #ffaa00); border: none;
-            color: white; padding: 16px 48px; font-size: 1.25rem; font-weight: bold;
+            color: white; padding: 14px 40px; font-size: 1.1rem; font-weight: bold;
             border-radius: 30px; cursor: pointer; box-shadow: 0 4px 20px rgba(255, 51, 0, 0.5);
         }
 
-        .footer { margin-top: 30px; font-size: 0.85rem; color: #ffaa00; font-weight: bold; }
+        .footer { margin-top: 25px; font-size: 0.8rem; color: #ffaa00; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="hud">
         <div>SCORE: <span id="score">0</span></div>
-        <div>COINS: <span id="coins">0</span></div>
-        <div>SPEED: <span id="speedVal">120</span> KM/H</div>
+        <div class="speed-slider-container">
+            SET SPEED:
+            <input type="range" id="speedAdjuster" min="5" max="25" value="12">
+        </div>
+        <div>SPEED: <span id="speedVal">120</span></div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -112,14 +120,12 @@
     </div>
 
     <div class="menu" id="menu">
-        <h1 id="menuTitle">ATAVA GARAGE & RACER</h1>
-        <p>Choose Your Dream Vehicle</p>
+        <h1 id="menuTitle">ATAVA RACING PRO HD</h1>
+        <p>Choose Vehicle & Custom Speed</p>
 
         <div class="garage">
-            <div class="v-card active" onclick="selectVehicle('hypercar', this)">🏎️ Hypercar Red</div>
-            <div class="v-card" onclick="selectVehicle('superbike', this)">🏍️ Superbike Ninja</div>
-            <div class="v-card" onclick="selectVehicle('yellowcar', this)">🏎️ GT Racer Yellow</div>
-            <div class="v-card" onclick="selectVehicle('tourerbike', this)">🏍️ Tourer Bike</div>
+            <div class="v-card active" onclick="selectVehicle('car', this)">🏎️ Red Supercar</div>
+            <div class="v-card" onclick="selectVehicle('bike', this)">🏍️ Superbike Rider</div>
         </div>
 
         <button class="start-btn" onclick="startGame()">START RACE 🚀</button>
@@ -135,25 +141,30 @@
 
         let gameActive = false;
         let score = 0, coins = 0;
-        let baseSpeed = 10;
-        let currentSpeed = 10;
-        let selectedType = 'hypercar';
+        let baseSpeed = 12;
+        let currentSpeed = 12;
+        let selectedType = 'car';
         let roadOffset = 0;
 
         const lanes = [
-            canvas.width * 0.22,
-            canvas.width * 0.41,
-            canvas.width * 0.59,
-            canvas.width * 0.78
+            canvas.width * 0.20,
+            canvas.width * 0.40,
+            canvas.width * 0.60,
+            canvas.width * 0.80
         ];
         let playerLane = 1;
 
         const player = { x: lanes[playerLane], y: canvas.height - 160 };
 
         let traffic = [];
-        let coinList = [];
         let particles = [];
-        let popups = [];
+
+        // Speed Slider Control
+        const speedAdjuster = document.getElementById('speedAdjuster');
+        speedAdjuster.addEventListener('input', (e) => {
+            baseSpeed = parseInt(e.target.value);
+            currentSpeed = baseSpeed;
+        });
 
         function selectVehicle(type, el) {
             selectedType = type;
@@ -162,168 +173,176 @@
         }
 
         function drawRoad() {
-            // Grass sides
-            ctx.fillStyle = '#064e3b';
+            // Road Base
+            ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Main Asphalt Road
-            const roadWidth = canvas.width * 0.8;
-            const roadLeft = (canvas.width - roadWidth) / 2;
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(roadLeft, 0, roadWidth, canvas.height);
+            const roadW = canvas.width * 0.84;
+            const roadLeft = (canvas.width - roadW) / 2;
 
-            // Side Guardrails
-            const stripeH = 35;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(roadLeft, 0, roadW, canvas.height);
+
+            // Red-White Borders
+            const stripeH = 30;
             for (let y = -stripeH + (roadOffset % stripeH); y < canvas.height; y += stripeH) {
-                let color = (Math.floor((y - roadOffset) / stripeH) % 2 === 0) ? '#ef4444' : '#ffffff';
-                ctx.fillStyle = color;
+                let c = (Math.floor((y - roadOffset) / stripeH) % 2 === 0) ? '#ef4444' : '#ffffff';
+                ctx.fillStyle = c;
                 ctx.fillRect(roadLeft - 8, y, 8, stripeH);
-                ctx.fillRect(roadLeft + roadWidth, y, 8, stripeH);
+                ctx.fillRect(roadLeft + roadW, y, 8, stripeH);
             }
 
-            // Center Yellow Double Lines
+            // Yellow Double Divider
             ctx.fillStyle = '#f59e0b';
             ctx.fillRect(canvas.width / 2 - 3, 0, 3, canvas.height);
             ctx.fillRect(canvas.width / 2 + 1, 0, 3, canvas.height);
 
-            // Dashed Lane Lines
-            ctx.setLineDash([20, 20]);
+            // Dashed Lanes
+            ctx.setLineDash([18, 18]);
             ctx.lineDashOffset = -roadOffset;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(canvas.width * 0.31, 0); ctx.lineTo(canvas.width * 0.31, canvas.height);
-            ctx.moveTo(canvas.width * 0.69, 0); ctx.lineTo(canvas.width * 0.69, canvas.height);
+            ctx.moveTo(canvas.width * 0.30, 0); ctx.lineTo(canvas.width * 0.30, canvas.height);
+            ctx.moveTo(canvas.width * 0.70, 0); ctx.lineTo(canvas.width * 0.70, canvas.height);
             ctx.stroke();
             ctx.setLineDash([]);
         }
 
-        function drawPlayerVehicle() {
-            player.x += (lanes[playerLane] - player.x) * 0.25;
-
+        function drawCarBody(x, y, color) {
             ctx.save();
-            ctx.translate(player.x, player.y);
+            ctx.translate(x, y);
 
-            if (selectedType === 'hypercar') {
-                // Red Hypercar
-                ctx.fillStyle = '#dc2626';
-                ctx.beginPath(); ctx.roundRect(-22, -38, 44, 76, 8); ctx.fill();
-                ctx.fillStyle = '#0f172a'; ctx.fillRect(-17, -18, 34, 18);
-                ctx.fillStyle = '#000'; ctx.fillRect(-26, 32, 52, 6); // Wing
-            } else if (selectedType === 'yellowcar') {
-                // GT Racer Yellow
-                ctx.fillStyle = '#eab308';
-                ctx.beginPath(); ctx.roundRect(-22, -38, 44, 76, 8); ctx.fill();
-                ctx.fillStyle = '#0f172a'; ctx.fillRect(-16, -15, 32, 16);
-                ctx.fillStyle = '#dc2626'; ctx.fillRect(-22, 30, 44, 5);
-            } else if (selectedType === 'superbike') {
-                // Ninja Bike
-                ctx.fillStyle = '#000'; ctx.fillRect(-4, -32, 8, 14); ctx.fillRect(-5, 20, 10, 16);
-                ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(0, -5, 12, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#ffffff'; ctx.fillRect(-10, -2, 20, 10);
-                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI*2); ctx.fill();
-            } else {
-                // Tourer Bike
-                ctx.fillStyle = '#000'; ctx.fillRect(-4, -32, 8, 14); ctx.fillRect(-5, 20, 10, 16);
-                ctx.fillStyle = '#3b82f6'; ctx.fillRect(-12, -10, 24, 20);
-                ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, -2, 7, 0, Math.PI*2); ctx.fill();
-            }
+            // Side Mirrors
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-24, -10, 6, 8);
+            ctx.fillRect(18, -10, 6, 8);
+
+            // Car Main Body
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.roundRect(-20, -38, 40, 76, [12, 12, 8, 8]);
+            ctx.fill();
+
+            // Hood lines
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(-10, -30); ctx.lineTo(10, -30); ctx.stroke();
+
+            // Cabin / Glass
+            ctx.fillStyle = '#090d16';
+            ctx.beginPath();
+            ctx.roundRect(-15, -18, 30, 36, 6);
+            ctx.fill();
+
+            // Roof top
+            ctx.fillStyle = color;
+            ctx.fillRect(-13, -5, 26, 16);
+
+            // Spoiler
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(-22, 30, 44, 6);
+
+            // Back Tail Lights Glow
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowColor = '#ef4444';
+            ctx.shadowBlur = 10;
+            ctx.fillRect(-17, 36, 8, 3);
+            ctx.fillRect(9, 36, 8, 3);
 
             ctx.restore();
+        }
 
-            // Exhaust Smoke & Fire
-            if (currentSpeed > baseSpeed) {
-                particles.push({
-                    x: player.x + (Math.random() * 8 - 4),
-                    y: player.y + 36,
-                    size: Math.random() * 6 + 4,
-                    alpha: 1.0, color: '#38bdf8'
-                });
+        function drawBikeRider(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Bike Rear Tire
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-4, 15, 8, 22);
+
+            // Exhaust Pipes
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(8, 10, 4, 15);
+
+            // Bike Body & Tank
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(-8, -15, 16, 30);
+
+            // Rider Body (Leather Suit)
+            ctx.fillStyle = '#1e1b4b';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 12, 16, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rider Shoulders / Arms
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(-14, -8, 28, 8);
+
+            // Helmet
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(0, -6, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.fillRect(-5, -9, 10, 4); // Visor
+
+            ctx.restore();
+        }
+
+        function drawPlayer() {
+            player.x += (lanes[playerLane] - player.x) * 0.25;
+
+            if (selectedType === 'car') {
+                drawCarBody(player.x, player.y, '#dc2626');
+            } else {
+                drawBikeRider(player.x, player.y);
             }
+
+            // Smoke
+            particles.push({
+                x: player.x + (Math.random() * 6 - 3),
+                y: player.y + 36,
+                size: Math.random() * 5 + 3,
+                alpha: 0.8
+            });
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
-                p.y += 3; p.alpha -= 0.05; p.size += 0.2;
-                ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.alpha);
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-                ctx.globalAlpha = 1.0;
+                p.y += 3; p.alpha -= 0.05;
+                ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
                 if (p.alpha <= 0) particles.splice(i, 1);
             }
         }
 
-        function drawTrafficCar(c) {
-            ctx.save();
-            ctx.translate(c.x, c.y);
-            ctx.fillStyle = c.color;
-            ctx.beginPath(); ctx.roundRect(-20, -35, 40, 70, 7); ctx.fill();
-            ctx.fillStyle = '#1e293b'; ctx.fillRect(-15, -10, 30, 22);
-            ctx.restore();
-        }
-
-        function spawnObjects() {
-            if (Math.random() < 0.02) {
+        function spawnTraffic() {
+            if (Math.random() < 0.03) { // Higher density
                 let laneIdx = Math.floor(Math.random() * 4);
                 let targetX = lanes[laneIdx];
-                let canSpawn = true;
 
+                let safe = true;
                 for (let t of traffic) {
-                    if (Math.abs(t.x - targetX) < 10 && t.y < 150) {
-                        canSpawn = false; break;
-                    }
+                    if (Math.abs(t.x - targetX) < 10 && t.y < 180) safe = false;
                 }
 
-                if (canSpawn) {
+                if (safe) {
                     traffic.push({
                         x: targetX, y: -100,
-                        color: ['#8b5cf6', '#2563eb', '#059669', '#d97706'][Math.floor(Math.random() * 4)],
-                        speed: 3 + Math.random() * 2
+                        color: ['#059669', '#d97706', '#2563eb', '#9333ea'][Math.floor(Math.random()*4)],
+                        speed: 3 + Math.random() * 3
                     });
                 }
-            }
-
-            if (Math.random() < 0.015) {
-                let laneIdx = Math.floor(Math.random() * 4);
-                coinList.push({ x: lanes[laneIdx], y: -50 });
             }
         }
 
         function updateGame() {
-            document.getElementById('speedVal').innerText = Math.floor(currentSpeed * 11);
+            document.getElementById('speedVal').innerText = Math.floor(currentSpeed * 10) + ' KM/H';
 
-            // Traffic
             for (let i = traffic.length - 1; i >= 0; i--) {
                 let t = traffic[i];
                 t.y += currentSpeed - t.speed;
-                drawTrafficCar(t);
+                drawCarBody(t.x, t.y, t.color);
 
-                if (Math.abs(t.x - player.x) < 32 && Math.abs(t.y - player.y) < 60) gameOver();
+                if (Math.abs(t.x - player.x) < 30 && Math.abs(t.y - player.y) < 55) gameOver();
                 if (t.y > canvas.height + 100) traffic.splice(i, 1);
-            }
-
-            // Coins
-            for (let i = coinList.length - 1; i >= 0; i--) {
-                let coin = coinList[i];
-                coin.y += currentSpeed;
-
-                ctx.fillStyle = '#f59e0b';
-                ctx.beginPath(); ctx.arc(coin.x, coin.y, 11, 0, Math.PI*2); ctx.fill();
-
-                if (Math.abs(coin.x - player.x) < 25 && Math.abs(coin.y - player.y) < 35) {
-                    coins += 10;
-                    document.getElementById('coins').innerText = coins;
-                    popups.push({ x: player.x, y: player.y - 20, alpha: 1.0 });
-                    coinList.splice(i, 1);
-                } else if (coin.y > canvas.height + 50) coinList.splice(i, 1);
-            }
-
-            // ATAVA Text Animation
-            for (let i = popups.length - 1; i >= 0; i--) {
-                let p = popups[i];
-                p.y -= 2.5; p.alpha -= 0.03;
-                ctx.fillStyle = `rgba(255, 204, 0, ${p.alpha})`;
-                ctx.font = 'bold 20px Segoe UI';
-                ctx.fillText('ATAVA +10', p.x - 40, p.y);
-                if (p.alpha <= 0) popups.splice(i, 1);
             }
 
             roadOffset += currentSpeed;
@@ -332,14 +351,14 @@
         function startGame() {
             document.getElementById('menu').style.display = 'none';
             gameActive = true;
-            score = 0; coins = 0; traffic = []; coinList = []; particles = []; popups = [];
+            score = 0; traffic = []; particles = [];
             animate();
         }
 
         function gameOver() {
             gameActive = false;
             document.getElementById('menu').style.display = 'flex';
-            document.getElementById('menuTitle').innerText = "RACE CRASHED!";
+            document.getElementById('menuTitle').innerText = "CRASHED!";
         }
 
         function animate() {
@@ -350,8 +369,8 @@
             document.getElementById('score').innerText = Math.floor(score);
 
             drawRoad();
-            drawPlayerVehicle();
-            spawnObjects();
+            drawPlayer();
+            spawnTraffic();
             updateGame();
 
             requestAnimationFrame(animate);
@@ -366,26 +385,23 @@
         const accelBtn = document.getElementById('accelBtn');
         const brakeBtn = document.getElementById('brakeBtn');
 
-        const startAccel = () => currentSpeed = baseSpeed * 1.8;
-        const stopAccel = () => currentSpeed = baseSpeed;
+        accelBtn.addEventListener('mousedown', () => currentSpeed = baseSpeed * 1.6);
+        accelBtn.addEventListener('mouseup', () => currentSpeed = baseSpeed);
+        accelBtn.addEventListener('touchstart', (e) => { e.preventDefault(); currentSpeed = baseSpeed * 1.6; });
+        accelBtn.addEventListener('touchend', () => currentSpeed = baseSpeed);
 
-        accelBtn.addEventListener('mousedown', startAccel);
-        accelBtn.addEventListener('mouseup', stopAccel);
-        accelBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startAccel(); });
-        accelBtn.addEventListener('touchend', stopAccel);
-
-        brakeBtn.addEventListener('mousedown', () => currentSpeed = Math.max(4, baseSpeed * 0.5));
-        brakeBtn.addEventListener('mouseup', stopAccel);
+        brakeBtn.addEventListener('mousedown', () => currentSpeed = Math.max(3, baseSpeed * 0.4));
+        brakeBtn.addEventListener('mouseup', () => currentSpeed = baseSpeed);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') moveLeft();
             if (e.key === 'ArrowRight') moveRight();
-            if (e.key === 'ArrowUp') startAccel();
-            if (e.key === 'ArrowDown') currentSpeed = Math.max(4, baseSpeed * 0.5);
+            if (e.key === 'ArrowUp') currentSpeed = baseSpeed * 1.6;
+            if (e.key === 'ArrowDown') currentSpeed = Math.max(3, baseSpeed * 0.4);
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') stopAccel();
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') currentSpeed = baseSpeed;
         });
     </script>
 </body>
