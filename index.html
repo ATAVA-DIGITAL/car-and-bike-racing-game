@@ -176,6 +176,7 @@
 
         let traffic = [];
         let coinList = [];
+        let popups = []; // Floating Text Animation Array
         let trees = [];
 
         // Audio Context for Coin Sound
@@ -276,7 +277,6 @@
             }
         }
 
-        // Realistic Vehicle Shapes
         function drawCarBody(x, y, color) {
             ctx.save();
             ctx.translate(x, y);
@@ -374,8 +374,23 @@
                     coins += 10;
                     document.getElementById('coins').innerText = coins;
                     playCoinSound();
+                    
+                    // Trigger ATAVA Coin Popup Animation
+                    popups.push({ x: coin.x - 30, y: coin.y, text: 'ATAVA +10', alpha: 1.2 });
+                    
                     coinList.splice(i, 1);
                 } else if (coin.y > canvas.height + 50) coinList.splice(i, 1);
+            }
+
+            // Draw Floating Coin Popups
+            for (let i = popups.length - 1; i >= 0; i--) {
+                let p = popups[i];
+                p.y -= 1.5;
+                p.alpha -= 0.03;
+                ctx.fillStyle = `rgba(245, 158, 11, ${p.alpha})`;
+                ctx.font = 'bold 16px Segoe UI';
+                ctx.fillText(p.text, p.x, p.y);
+                if (p.alpha <= 0) popups.splice(i, 1);
             }
 
             roadOffset += currentSpeed;
@@ -384,7 +399,7 @@
         function startGame() {
             document.getElementById('menu').style.display = 'none';
             gameActive = true;
-            score = 0; coins = 0; traffic = []; coinList = [];
+            score = 0; coins = 0; traffic = []; coinList = []; popups = [];
             if (audioCtx.state === 'suspended') audioCtx.resume();
             animate();
         }
